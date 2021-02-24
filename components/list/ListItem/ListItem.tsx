@@ -8,7 +8,10 @@ interface Props {
 
 const ListItem: FC<Props> = ({ data }) => {
     const router = useRouter();
-    const handleClick = (e: React.MouseEvent<HTMLTableRowElement>) => {
+    const handleClick = (e: React.MouseEvent<HTMLTableRowElement, MouseEvent>) => {
+        if ((e.target as HTMLElement).tagName === 'A') {
+            return;
+        }
         e.preventDefault();
         router.push(`/post/${data.id}`);
     };
@@ -17,7 +20,7 @@ const ListItem: FC<Props> = ({ data }) => {
         <tr onClick={handleClick} style={{ cursor: 'pointer' }}>
             <td>{data.id}</td>
             <td>{data.title}</td>
-            <td><a href={data.url}>{data.url}</a></td>
+            <td><a href={data.url} target="_blank">{data.url}</a></td>
             <td>{data.added_at}</td>
         </tr>
     );
