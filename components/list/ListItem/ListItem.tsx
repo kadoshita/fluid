@@ -1,9 +1,9 @@
 import React, { FC } from 'react';
 import { useRouter } from 'next/router';
-import { IListData } from '../../../pages';
+import { PostData } from '../../../@types/PostData';
 
 interface Props {
-    data: IListData;
+    data: PostData;
 };
 
 const ListItem: FC<Props> = ({ data }) => {

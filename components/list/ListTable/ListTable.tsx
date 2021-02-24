@@ -1,10 +1,10 @@
 import React, { FC } from "react";
 import { Table } from "react-bootstrap";
-import { IListData } from "../../../pages";
+import { PostData } from "../../../@types/PostData";
 import ListItem from "../ListItem";
 
 interface Props {
-    data: IListData[];
+    data: PostData[];
 };
 
 const ListTable: FC<Props> = ({ data }) => {
