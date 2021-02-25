@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Col, Container, Row } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import MyNavbar from '../components/common/Navbar';
@@ -11,13 +11,23 @@ const ListData: PostData[] = [
 ];
 
 const Home = () => {
+  const [postData, setPostData] = useState<PostData[]>([]);
+
+  useEffect(() => {
+    const getPostData = async () => {
+      const res = await fetch('/api/post');
+      const data: PostData[] = await res.json();
+      setPostData(data);
+    };
+    getPostData();
+  }, []);
   return (
     <div>
       <MyNavbar></MyNavbar>
       <Container fluid>
         <Row>
           <Col>
-            <ListTable data={ListData}></ListTable>
+            <ListTable data={postData}></ListTable>
           </Col>
         </Row>
       </Container>
