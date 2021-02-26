@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
+import Head from 'next/head';
 import { Container, Row, Col, Card } from 'react-bootstrap';
 import { PostData } from '../../@types/PostData';
 import MyNavbar from '../../components/common/Navbar';
@@ -20,6 +21,10 @@ const Post = () => {
 
     return (
         <div>
+            <Head>
+                <title>fluid - {postData ? postData.title : ''}</title>
+                <link rel="icon" href="/favicon.ico" />
+            </Head>
             <MyNavbar></MyNavbar>
             <Container fluid>
                 <Row>
