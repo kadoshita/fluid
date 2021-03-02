@@ -1,20 +1,24 @@
-import { PostData } from "../../../@types/PostData";
+import { InsertPostData } from '../../../@types/PostData';
+import { connectToDatabase } from '../../../db/index';
 
-const TOKEN = 'fuga';
-
-const ListData: PostData[] = [
-    { id: 1, title: 'Google', url: 'https://www.google.com/', added_at: '2021/2/24 17:41:27' },
-    { id: 2, title: 'mstdn.sublimer.me - あすてろいどん', url: 'https://mstdn.sublimer.me/about', added_at: '2021/2/24 17:41:40' }
-];
-
-export default (req, res) => {
+export default async (req, res) => {
     if (req.method === 'GET') {
-        res.status(200).json(ListData);
+        const { db } = await connectToDatabase();
+        const posts = await db.collection('posts').find({}).limit(10).toArray();
+        res.status(200).json(posts);
     } else if (req.method === 'POST') {
-        if (req.headers['authorization'] && req.headers['authorization'] === `Bearer ${TOKEN}`) {
-            res.status(200).end();
+        if (req.headers['authorization'] && req.headers['authorization'] === `Bearer ${process.env.API_TOKEN}`) {
+            try {
+                const postData: InsertPostData = { ...req.body, added_at: (new Date()) };
+                const { db } = await connectToDatabase();
+                await db.collection('posts').insertOne(postData);
+                return res.status(200).end();
+            } catch (e) {
+                console.error(e);
+                return res.status(500).end();
+            }
         } else {
-            res.status(401).end();
+            return res.status(401).end();
         }
     }
 };

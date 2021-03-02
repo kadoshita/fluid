@@ -1,0 +1,15 @@
+### Get all data
+GET http://localhost:3000/api/post HTTP/1.1
+
+### Get one data
+GET http://localhost:3000/api/post/603df0c168ab3a3e8fc8279c HTTP/1.1
+
+### Post new data
+POST http://localhost:3000/api/post HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer hoge
+
+{
+    "title": "Google_1",
+    "url": "https://www.google.com/"
+}

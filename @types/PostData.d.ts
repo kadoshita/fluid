@@ -1,6 +1,11 @@
-export type PostData = {
-    id: number;
+export interface PostData {
     title: string;
     url: string;
-    added_at: string;
 };
+
+export interface InsertPostData extends PostData {
+    added_at: Date;
+}
+export interface DisplayPostData extends InsertPostData {
+    _id: string;
+}

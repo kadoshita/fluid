@@ -36,10 +36,12 @@ export async function connectToDatabase() {
             useUnifiedTopology: true,
         };
 
-        cached.promise = MongoClient.connect(MONGODB_URI, opts).then((client) => {
+        cached.promise = MongoClient.connect(MONGODB_URI, opts).then(async client => {
+            const db = client.db(MONGODB_DB);
+            await db.collection('posts').createIndex({ title: 1, url: 1 }, { unique: true });
             return {
                 client,
-                db: client.db(MONGODB_DB),
+                db,
             };
         });
     }

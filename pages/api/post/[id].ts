@@ -1,13 +1,23 @@
-import { PostData } from "../../../@types/PostData";
+import { ObjectId } from "mongodb";
+import { DisplayPostData } from "../../../@types/PostData";
+import { connectToDatabase } from "../../../db";
 
-const ListData: PostData[] = [
-    { id: 1, title: 'Google', url: 'https://www.google.com/', added_at: '2021/2/24 17:41:27' },
-    { id: 2, title: 'mstdn.sublimer.me - あすてろいどん', url: 'https://mstdn.sublimer.me/about', added_at: '2021/2/24 17:41:40' }
-];
-
-export default (req, res) => {
-    const { id } = req.query;
-    const _id = parseInt(id, 10);
-    const post = ListData.find(d => d.id === _id) || [];
-    res.status(200).json(post);
+export default async (req, res) => {
+    try {
+        const { id } = req.query;
+        if(id.length!=24){
+            return res.status(400).end();
+        }
+        const oid = new ObjectId(id);
+        const { db } = await connectToDatabase();
+        const post: DisplayPostData = await db.collection('posts').findOne({ _id: oid });
+        if (post) {
+            return res.status(200).json(post);
+        } else {
+            return res.status(404).end();
+        }
+    } catch (e) {
+        console.error(e);
+        return res.status(500).end();
+    }
 };

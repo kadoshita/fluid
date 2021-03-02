@@ -4,15 +4,15 @@ import Head from 'next/head';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import MyNavbar from '../components/common/Navbar';
 import { ListTable } from '../components/list';
-import { PostData } from '../@types/PostData';
+import { DisplayPostData } from '../@types/PostData';
 
 const Home = () => {
-  const [postData, setPostData] = useState<PostData[]>([]);
+  const [postData, setPostData] = useState<DisplayPostData[]>([]);
 
   useEffect(() => {
     const getPostData = async () => {
       const res = await fetch('/api/post');
-      const data: PostData[] = await res.json();
+      const data: DisplayPostData[] = await res.json();
       setPostData(data);
     };
     getPostData();

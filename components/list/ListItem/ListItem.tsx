@@ -1,9 +1,9 @@
 import React, { FC } from 'react';
 import { useRouter } from 'next/router';
-import { PostData } from '../../../@types/PostData';
+import { DisplayPostData } from '../../../@types/PostData';
 
 interface Props {
-    data: PostData;
+    data: DisplayPostData;
 };
 
 const ListItem: FC<Props> = ({ data }) => {
@@ -13,12 +13,11 @@ const ListItem: FC<Props> = ({ data }) => {
             return;
         }
         e.preventDefault();
-        router.push(`/post/${data.id}`);
+        router.push(`/post/${data._id}`);
     };
 
     return (
         <tr onClick={handleClick} style={{ cursor: 'pointer' }}>
-            <td>{data.id}</td>
             <td>{data.title}</td>
             <td><a href={data.url} target="_blank">{data.url}</a></td>
             <td>{data.added_at}</td>

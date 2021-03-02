@@ -1,10 +1,10 @@
 import React, { FC } from "react";
 import { Table } from "react-bootstrap";
-import { PostData } from "../../../@types/PostData";
+import { DisplayPostData } from "../../../@types/PostData";
 import ListItem from "../ListItem";
 
 interface Props {
-    data: PostData[];
+    data: DisplayPostData[];
 };
 
 const ListTable: FC<Props> = ({ data }) => {
@@ -12,7 +12,6 @@ const ListTable: FC<Props> = ({ data }) => {
         <Table striped bordered hover variant="dark">
             <thead>
                 <tr>
-                    <th>No.</th>
                     <th>Title</th>
                     <th>URL</th>
                     <th>Added at</th>

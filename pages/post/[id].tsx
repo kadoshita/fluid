@@ -2,18 +2,18 @@ import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { Container, Row, Col, Card } from 'react-bootstrap';
-import { PostData } from '../../@types/PostData';
+import { DisplayPostData } from '../../@types/PostData';
 import MyNavbar from '../../components/common/Navbar';
 
 const Post = () => {
     const router = useRouter();
-    const [postData, setPostData] = useState<PostData>(null);
+    const [postData, setPostData] = useState<DisplayPostData>(null);
     const { id } = router.query;
 
     useEffect(() => {
         const getPostData = async id => {
             const res = await fetch(`/api/post/${id}`);
-            const postData: PostData = await res.json();
+            const postData: DisplayPostData = await res.json();
             setPostData(postData);
         };
         getPostData(id);
