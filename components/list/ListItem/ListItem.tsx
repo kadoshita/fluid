@@ -16,11 +16,12 @@ const ListItem: FC<Props> = ({ data }) => {
         router.push(`/post/${data._id}`);
     };
 
+    const added_at = (new Date(data.added_at)).toLocaleString();
     return (
         <tr onClick={handleClick} style={{ cursor: 'pointer' }}>
             <td>{data.title}</td>
             <td><a href={data.url} target="_blank">{data.url}</a></td>
-            <td>{data.added_at}</td>
+            <td>{added_at}</td>
         </tr>
     );
 };
