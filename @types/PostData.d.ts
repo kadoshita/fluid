@@ -1,6 +1,10 @@
 export interface PostData {
     title: string;
     url: string;
+    category: string;
+    description?: string;
+    image?: string;
+    tag?: string[];
 };
 
 export interface InsertPostData extends PostData {

@@ -1,10 +1,10 @@
-import { InsertPostData } from '../../../@types/PostData';
+import { DisplayPostData, InsertPostData } from '../../../@types/PostData';
 import { connectToDatabase } from '../../../db/index';
 
 export default async (req, res) => {
     if (req.method === 'GET') {
         const { db } = await connectToDatabase();
-        const posts = await db.collection('posts').find({}).limit(10).toArray();
+        const posts: DisplayPostData[] = await db.collection('posts').find({}).limit(10).toArray();
         res.status(200).json(posts);
     } else if (req.method === 'POST') {
         if (req.headers['authorization'] && req.headers['authorization'] === `Bearer ${process.env.API_TOKEN}`) {

@@ -19,8 +19,6 @@ const Post = () => {
         getPostData(id);
     }, [id]);
 
-    const added_at = (new Date(postData.added_at)).toLocaleString();
-
     return (
         <div>
             <Head>
@@ -33,12 +31,17 @@ const Post = () => {
                     <Col>
                         {(() => {
                             if (postData) {
+                                const added_at = (new Date(postData.added_at)).toLocaleString();
                                 return (
                                     <div>
                                         <Card className="text-center">
                                             <Card.Body>
                                                 <Card.Title>{postData.title}</Card.Title>
-                                                <Card.Text><a href={postData.url} target="_blank">{postData.url}</a></Card.Text>
+                                                <Card.Subtitle>{postData.category}</Card.Subtitle>
+                                                <Card.Link href={postData.url} target="_blank">{postData.url}</Card.Link>
+                                                <Card.Text>{postData.description}</Card.Text>
+                                                <Card.Img src={postData.image} style={{ width: '18rem' }}></Card.Img>
+                                                <Card.Text>{postData.tag.join(' / ')}</Card.Text>
                                             </Card.Body>
                                             <Card.Footer className="text-muted">Added at: {added_at}</Card.Footer>
                                         </Card>
