@@ -13,6 +13,7 @@ const ListTable: FC<Props> = ({ data }) => {
             <thead>
                 <tr>
                     <th>Title</th>
+                    <th>Category</th>
                     <th>URL</th>
                     <th>Added at</th>
                 </tr>

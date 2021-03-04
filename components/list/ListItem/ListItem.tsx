@@ -20,6 +20,7 @@ const ListItem: FC<Props> = ({ data }) => {
     return (
         <tr onClick={handleClick} style={{ cursor: 'pointer' }}>
             <td>{data.title}</td>
+            <td>{data.category}</td>
             <td><a href={data.url} target="_blank">{data.url}</a></td>
             <td>{added_at}</td>
         </tr>
