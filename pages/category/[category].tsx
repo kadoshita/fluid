@@ -5,9 +5,10 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import MyNavbar from '../../components/common/Navbar';
 import { ListTable } from '../../components/list';
 import { DisplayPostData } from '../../@types/PostData';
-import router from 'next/router';
+import { useRouter } from 'next/router';
 
 const Category = () => {
+    const router = useRouter();
     const [categoryPostData, setCategoryPostData] = useState<DisplayPostData[]>([]);
     const { category } = router.query;
 
