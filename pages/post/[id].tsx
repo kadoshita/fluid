@@ -13,6 +13,9 @@ const Post = () => {
 
     useEffect(() => {
         const getPostData = async id => {
+            if (!id) {
+                return;
+            }
             const res = await fetch(`/api/post/${id}`);
             const postData: DisplayPostData = await res.json();
             setPostData(postData);
@@ -42,7 +45,7 @@ const Post = () => {
                                                 <Card.Link href={postData.url} target="_blank">{postData.url}</Card.Link>
                                                 <Card.Text className="text-left">{postData.description}</Card.Text>
                                                 <Card.Img src={postData.image} style={{ width: '18rem' }}></Card.Img>
-                                                <Card.Text>{postData.tag.join(' / ')}</Card.Text>
+                                                <Card.Text>{postData.tag.map((t, i) => <Link key={i} href={`/tag/${t}`}><a style={{ marginRight: '8px' }}>{t}</a></Link>)}</Card.Text>
                                             </Card.Body>
                                             <Card.Footer className="text-muted">Added at: {added_at}</Card.Footer>
                                         </Card>
