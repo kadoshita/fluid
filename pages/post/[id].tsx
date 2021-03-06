@@ -4,6 +4,7 @@ import Head from 'next/head';
 import { Container, Row, Col, Card } from 'react-bootstrap';
 import { DisplayPostData } from '../../@types/PostData';
 import MyNavbar from '../../components/common/Navbar';
+import Link from 'next/link';
 
 const Post = () => {
     const router = useRouter();
@@ -37,7 +38,7 @@ const Post = () => {
                                         <Card className="text-center">
                                             <Card.Body>
                                                 <Card.Title>{postData.title}</Card.Title>
-                                                <Card.Subtitle>{postData.category}</Card.Subtitle>
+                                                <Card.Subtitle><Link href={`/category/${postData.category}`}><a>{postData.category}</a></Link></Card.Subtitle>
                                                 <Card.Link href={postData.url} target="_blank">{postData.url}</Card.Link>
                                                 <Card.Text className="text-left">{postData.description}</Card.Text>
                                                 <Card.Img src={postData.image} style={{ width: '18rem' }}></Card.Img>
