@@ -15,17 +15,17 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
 
     const { db } = await connectToDatabase();
     const now = new Date();
-    const today = now.toISOString().split('T')[0];
-    const tomorrow = (new Date(now.getTime() + (24 * 60 * 60 * 1000))).toISOString().split('T')[0];
+    const before24h = new Date(now.getTime() - (24 * 60 * 60 * 1000));
 
-    const todayPosts: DisplayPostData[] = await db.collection('posts').find({
+    const latest24hPosts: DisplayPostData[] = await db.collection('posts').find({
         "added_at": {
-            "$gte": new Date(`${today}T00:00:00+09:00`),
-            "$lt": new Date(`${tomorrow}T00:00:00+09:00`)
+            "$gte": before24h,
+            "$lt": now
         }
     }).toArray();
+    const sortedPosts = latest24hPosts.sort((a, b) => b.added_at.getTime() - a.added_at.getTime());
 
-    todayPosts.forEach(post => {
+    sortedPosts.forEach(post => {
         feed.item({
             title: `fluid - ${post.title}`,
             description: post.description,

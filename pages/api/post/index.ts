@@ -8,8 +8,17 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     res.setHeader('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
     if (req.method === 'GET') {
         const { db } = await connectToDatabase();
-        const posts: DisplayPostData[] = await db.collection('posts').find({}).limit(10).toArray();
-        res.status(200).json(posts);
+        const now = new Date();
+        const before24h = new Date(now.getTime() - (24 * 60 * 60 * 1000));
+
+        const latest24hPosts: DisplayPostData[] = await db.collection('posts').find({
+            "added_at": {
+                "$gte": before24h,
+                "$lt": now
+            }
+        }).toArray();
+        const sortedPosts = latest24hPosts.sort((a, b) => b.added_at.getTime() - a.added_at.getTime());
+        res.status(200).json(sortedPosts);
     } else if (req.method === 'POST') {
         if (req.headers['authorization'] && req.headers['authorization'] === `Bearer ${process.env.API_TOKEN}`) {
             try {
