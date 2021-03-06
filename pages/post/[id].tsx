@@ -39,7 +39,7 @@ const Post = () => {
                                                 <Card.Title>{postData.title}</Card.Title>
                                                 <Card.Subtitle>{postData.category}</Card.Subtitle>
                                                 <Card.Link href={postData.url} target="_blank">{postData.url}</Card.Link>
-                                                <Card.Text>{postData.description}</Card.Text>
+                                                <Card.Text className="text-left">{postData.description}</Card.Text>
                                                 <Card.Img src={postData.image} style={{ width: '18rem' }}></Card.Img>
                                                 <Card.Text>{postData.tag.join(' / ')}</Card.Text>
                                             </Card.Body>

@@ -9,7 +9,7 @@ interface Props {
 
 const ListTable: FC<Props> = ({ data }) => {
     return (
-        <Table striped bordered hover variant="dark">
+        <Table striped bordered hover variant="dark" style={{ tableLayout: 'fixed' }}>
             <thead>
                 <tr>
                     <th>Title</th>

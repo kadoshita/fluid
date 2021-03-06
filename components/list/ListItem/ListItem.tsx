@@ -21,7 +21,7 @@ const ListItem: FC<Props> = ({ data }) => {
         <tr onClick={handleClick} style={{ cursor: 'pointer' }}>
             <td>{data.title}</td>
             <td>{data.category}</td>
-            <td><a href={data.url} target="_blank">{data.url}</a></td>
+            <td style={{ overflowX: 'hidden', whiteSpace: 'nowrap' }}><a href={data.url} target="_blank">{data.url}</a></td>
             <td>{added_at}</td>
         </tr>
     );
