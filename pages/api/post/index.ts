@@ -1,7 +1,11 @@
+import { NextApiRequest, NextApiResponse } from 'next';
 import { DisplayPostData, InsertPostData } from '../../../@types/PostData';
 import { connectToDatabase } from '../../../db/index';
 
-export default async (req, res) => {
+export default async (req: NextApiRequest, res: NextApiResponse) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
     if (req.method === 'GET') {
         const { db } = await connectToDatabase();
         const posts: DisplayPostData[] = await db.collection('posts').find({}).limit(10).toArray();
@@ -20,5 +24,7 @@ export default async (req, res) => {
         } else {
             return res.status(401).end();
         }
+    } else if (req.method === 'OPTIONS') {
+        return res.status(200).end();
     }
 };
