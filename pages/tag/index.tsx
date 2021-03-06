@@ -1,9 +1,9 @@
-import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { Container, Row, Col } from 'react-bootstrap';
 import MyNavbar from '../../components/common/Navbar';
+import Header from '../../components/common/Header';
 
 const Tag = () => {
     const [tags, setTags] = useState<string[]>([]);
@@ -22,6 +22,12 @@ const Tag = () => {
             <Head>
                 <title>fluid - Tag</title>
                 <link rel="icon" href="/favicon.ico" />
+                <Header title={`fluid - Tag`}
+                    url={`https://fluid-portal.azurewebsites.net/tag`}
+                    description='An application for Web clipping and sharing.'
+                    image='https://fluid-portal.azurewebsites.net/logo.png'
+                    type='article'
+                    keywords='RSS,Portal,News,Technology'></Header>
             </Head>
             <MyNavbar></MyNavbar>
             <Container fluid>

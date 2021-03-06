@@ -5,6 +5,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import MyNavbar from '../components/common/Navbar';
 import { ListTable } from '../components/list';
 import { DisplayPostData } from '../@types/PostData';
+import Header from '../components/common/Header';
 
 const Home = () => {
   const [postData, setPostData] = useState<DisplayPostData[]>([]);
@@ -22,6 +23,11 @@ const Home = () => {
       <Head>
         <title>fluid - Home</title>
         <link rel="icon" href="/favicon.ico" />
+        <Header title='fluid' url='https://fluid-portal.azurewebsites.net'
+          description='An application for Web clipping and sharing.'
+          image='https://fluid-portal.azurewebsites.net/logo.png'
+          type='website'
+          keywords='RSS,Portal,News,Technology'></Header>
       </Head>
       <MyNavbar></MyNavbar>
       <Container fluid>

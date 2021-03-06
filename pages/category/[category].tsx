@@ -6,6 +6,7 @@ import MyNavbar from '../../components/common/Navbar';
 import { ListTable } from '../../components/list';
 import { DisplayPostData } from '../../@types/PostData';
 import { useRouter } from 'next/router';
+import Header from '../../components/common/Header';
 
 const Category = () => {
     const router = useRouter();
@@ -25,6 +26,12 @@ const Category = () => {
             <Head>
                 <title>fluid - {category}</title>
                 <link rel="icon" href="/favicon.ico" />
+                <Header title={`fluid - ${category}`}
+                    url={`https://fluid-portal.azurewebsites.net/category/${category}`}
+                    description='An application for Web clipping and sharing.'
+                    image='https://fluid-portal.azurewebsites.net/logo.png'
+                    type='article'
+                    keywords='RSS,Portal,News,Technology'></Header>
             </Head>
             <MyNavbar></MyNavbar>
             <Container fluid>

@@ -5,6 +5,7 @@ import { Container, Row, Col, Card } from 'react-bootstrap';
 import { DisplayPostData } from '../../@types/PostData';
 import MyNavbar from '../../components/common/Navbar';
 import Link from 'next/link';
+import Header from '../../components/common/Header';
 
 const Post = () => {
     const router = useRouter();
@@ -28,6 +29,12 @@ const Post = () => {
             <Head>
                 <title>fluid - {postData ? postData.title : ''}</title>
                 <link rel="icon" href="/favicon.ico" />
+                <Header title={`fluid - ${postData ? postData.title : ''}`}
+                    url={`https://fluid-portal.azurewebsites.net/post/${id}`}
+                    description='An application for Web clipping and sharing.'
+                    image='https://fluid-portal.azurewebsites.net/logo.png'
+                    type='article'
+                    keywords='RSS,Portal,News,Technology'></Header>
             </Head>
             <MyNavbar></MyNavbar>
             <Container fluid>
