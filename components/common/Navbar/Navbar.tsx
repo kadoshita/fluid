@@ -16,6 +16,7 @@ const MyNavbar = () => {
             <Navbar.Collapse id="basic-navbar-nav">
                 <Nav className="mr-auto">
                     <Nav.Link href="#" onClick={handleClick}>Home</Nav.Link>
+                    <Nav.Link href="/api/feed" target="_blank">RSS</Nav.Link>
                     <Nav.Link href="https://github.com/kadoshita/fluid" target="_blank">GitHub</Nav.Link>
                     <Nav.Link href="https://twitter.com/lz650sss" target="_blank">Twitter</Nav.Link>
                 </Nav>
