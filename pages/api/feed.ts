@@ -10,16 +10,17 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         description: 'An application for Web clipping and sharing.',
         site_url: url,
         feed_url: `${url}/api/feed`,
-        language: 'ja'
+        language: 'ja',
+        ttl: 60
     });
 
     const { db } = await connectToDatabase();
     const now = new Date();
-    const before24h = new Date(now.getTime() - (24 * 60 * 60 * 1000));
+    const before1h = new Date(now.getTime() - (60 * 60 * 1000));
 
     const latest24hPosts: DisplayPostData[] = await db.collection('posts').find({
         "added_at": {
-            "$gte": before24h,
+            "$gte": before1h,
             "$lt": now
         }
     }).toArray();
@@ -34,7 +35,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         });
     });
 
-    res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate');
+    res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
     res.setHeader('Content-Type', 'text/xml');
     res.send(feed.xml());
 };
