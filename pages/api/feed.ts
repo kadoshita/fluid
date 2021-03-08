@@ -16,11 +16,11 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
 
     const { db } = await connectToDatabase();
     const now = new Date();
-    const before1h = new Date(now.getTime() - (60 * 60 * 1000));
+    const before24h = new Date(now.getTime() - (24 * 60 * 60 * 1000));
 
     const latest24hPosts: DisplayPostData[] = await db.collection('posts').find({
         "added_at": {
-            "$gte": before1h,
+            "$gte": before24h,
             "$lt": now
         }
     }).toArray();
