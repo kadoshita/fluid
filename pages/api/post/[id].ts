@@ -1,14 +1,15 @@
 import { ObjectId } from "mongodb";
+import { NextApiRequest, NextApiResponse } from "next";
 import { DisplayPostData } from "../../../@types/PostData";
 import { connectToDatabase } from "../../../db";
 
-export default async (req, res) => {
+export default async (req: NextApiRequest, res: NextApiResponse) => {
     try {
         const { id } = req.query;
         if(id.length!=24){
             return res.status(400).end();
         }
-        const oid = new ObjectId(id);
+        const oid = new ObjectId(id.toString());
         const { db } = await connectToDatabase();
         const post: DisplayPostData = await db.collection('posts').findOne({ _id: oid });
         if (post) {

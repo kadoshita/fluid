@@ -1,7 +1,8 @@
+import { NextApiRequest, NextApiResponse } from "next";
 import { DisplayPostData } from "../../../@types/PostData";
 import { connectToDatabase } from "../../../db";
 
-export default async (req, res) => {
+export default async (req: NextApiRequest, res: NextApiResponse) => {
     try {
         const { category } = req.query;
         const { db } = await connectToDatabase();

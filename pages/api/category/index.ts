@@ -1,6 +1,7 @@
+import { NextApiRequest, NextApiResponse } from 'next';
 import { connectToDatabase } from '../../../db/index';
 
-export default async (req, res) => {
+export default async (req: NextApiRequest, res: NextApiResponse) => {
     if (req.method === 'GET') {
         const { db } = await connectToDatabase();
         const categories = await db.collection('posts').distinct('category');
