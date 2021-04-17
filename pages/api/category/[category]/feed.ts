@@ -26,10 +26,9 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
                 "$lt": now
             },
             "category": category
-        }).toArray();
-        const sortedPosts = latest24hPosts.sort((a, b) => b.added_at.getTime() - a.added_at.getTime());
+        }).sort({ added_at: -1 }).toArray();
 
-        sortedPosts.forEach(post => {
+        latest24hPosts.forEach(post => {
             feed.item({
                 title: `fluid - ${post.title}`,
                 description: post.description,

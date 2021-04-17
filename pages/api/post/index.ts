@@ -16,9 +16,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
                 "$gte": before24h,
                 "$lt": now
             }
-        }).toArray();
-        const sortedPosts = latest24hPosts.sort((a, b) => b.added_at.getTime() - a.added_at.getTime());
-        res.status(200).json(sortedPosts);
+        }).sort({ added_at: -1 }).toArray();
+        res.status(200).json(latest24hPosts);
     } else if (req.method === 'POST') {
         if (req.headers['authorization'] && req.headers['authorization'] === `Bearer ${process.env.API_TOKEN}`) {
             try {

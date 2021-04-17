@@ -16,11 +16,10 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
                 "$lt": now
             },
             "category": category
-        }).toArray();
-        const sortedPosts = latest7dPosts.sort((a, b) => b.added_at.getTime() - a.added_at.getTime());
+        }).sort({ added_at: -1 }).toArray();
 
-        if (sortedPosts) {
-            return res.status(200).json(sortedPosts);
+        if (latest7dPosts) {
+            return res.status(200).json(latest7dPosts);
         } else {
             return res.status(404).end();
         }

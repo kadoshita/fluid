@@ -18,11 +18,10 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
             "tag": {
                 "$in": [tag]
             }
-        }).toArray();
-        const sortedPosts = latest24hPosts.sort((a, b) => b.added_at.getTime() - a.added_at.getTime());
+        }).sort({ added_at: -1 }).toArray();
 
-        if (sortedPosts) {
-            return res.status(200).json(sortedPosts);
+        if (latest24hPosts) {
+            return res.status(200).json(latest24hPosts);
         } else {
             return res.status(404).end();
         }

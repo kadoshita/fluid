@@ -24,8 +24,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
             ]
         };
         const searchByKeywordResult: DisplayPostData[] = await db.collection('posts').find(findQuery).sort({ added_at: -1 }).limit(30).toArray();
-        const sortedPosts = searchByKeywordResult.sort((a, b) => b.added_at.getTime() - a.added_at.getTime());
-        return res.status(200).json(sortedPosts);
+        return res.status(200).json(searchByKeywordResult);
     } catch (e) {
         console.error(e);
         return res.status(500).end();
