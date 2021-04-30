@@ -23,9 +23,9 @@ const Category = () => {
                 <title>fluid - Category</title>
                 <link rel="icon" href="/favicon.ico" />
                 <Header title={`fluid - Category`}
-                    url={`https://fluid-portal.azurewebsites.net/category`}
+                    url={`https://fluid.sublimer.me/category`}
                     description='An application for Web clipping and sharing.'
-                    image='https://fluid-portal.azurewebsites.net/logo.png'
+                    image='https://fluid.sublimer.me/logo.png'
                     type='article'
                     keywords='RSS,Portal,News,Technology'></Header>
             </Head>

@@ -4,7 +4,7 @@ import { DisplayPostData } from "../../@types/PostData";
 import { connectToDatabase } from "../../db";
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
-    const url = 'https://fluid-portal.azurewebsites.net';
+    const url = 'https://fluid.sublimer.me';
     const feed = new RSS({
         title: 'fluid',
         description: 'An application for Web clipping and sharing.',

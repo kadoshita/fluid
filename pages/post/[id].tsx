@@ -30,9 +30,9 @@ const Post = () => {
                 <title>fluid - {postData ? postData.title : ''}</title>
                 <link rel="icon" href="/favicon.ico" />
                 <Header title={`fluid - ${postData ? postData.title : ''}`}
-                    url={`https://fluid-portal.azurewebsites.net/post/${id}`}
+                    url={`https://fluid.sublimer.me/post/${id}`}
                     description='An application for Web clipping and sharing.'
-                    image='https://fluid-portal.azurewebsites.net/logo.png'
+                    image='https://fluid.sublimer.me/logo.png'
                     type='article'
                     keywords='RSS,Portal,News,Technology'></Header>
             </Head>

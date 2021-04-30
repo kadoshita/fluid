@@ -6,7 +6,7 @@ import { connectToDatabase } from "../../../../db";
 export default async (req: NextApiRequest, res: NextApiResponse) => {
     try {
         const { category } = req.query;
-        const url = 'https://fluid-portal.azurewebsites.net';
+        const url = 'https://fluid.sublimer.me';
         const feed = new RSS({
             title: `fluid - ${category}`,
             description: 'An application for Web clipping and sharing.',

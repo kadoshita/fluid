@@ -27,9 +27,9 @@ const Tag = () => {
                 <title>fluid - {tag}</title>
                 <link rel="icon" href="/favicon.ico" />
                 <Header title={`fluid - ${tag}`}
-                    url={`https://fluid-portal.azurewebsites.net/tag/${tag}`}
+                    url={`https://fluid.sublimer.me/tag/${tag}`}
                     description='An application for Web clipping and sharing.'
-                    image='https://fluid-portal.azurewebsites.net/logo.png'
+                    image='https://fluid.sublimer.me/logo.png'
                     type='article'
                     keywords='RSS,Portal,News,Technology'></Header>
             </Head>

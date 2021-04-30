@@ -23,9 +23,9 @@ const Home = () => {
       <Head>
         <title>fluid - Home</title>
         <link rel="icon" href="/favicon.ico" />
-        <Header title='fluid' url='https://fluid-portal.azurewebsites.net'
+        <Header title='fluid' url='https://fluid.sublimer.me'
           description='An application for Web clipping and sharing.'
-          image='https://fluid-portal.azurewebsites.net/logo.png'
+          image='https://fluid.sublimer.me/logo.png'
           type='website'
           keywords='RSS,Portal,News,Technology'></Header>
       </Head>
