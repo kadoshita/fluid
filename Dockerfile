@@ -1,6 +1,7 @@
 FROM node:14.16.0-buster
 
 WORKDIR /usr/local/src
+ENV TZ Asia/Tokyo
 COPY package.json .
 COPY package-lock.json .
 RUN npm ci
