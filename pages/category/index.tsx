@@ -4,19 +4,18 @@ import Link from 'next/link';
 import { Container, Row, Col } from 'react-bootstrap';
 import MyNavbar from '../../components/common/Navbar';
 import Header from '../../components/common/Header';
+import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 
-const Category = () => {
-    const [categories, setCategories] = useState<string[]>([]);
-
-    useEffect(() => {
-        const getCategories = async () => {
-            const res = await fetch(`/api/category`);
-            const categoriesJson: string[] = await res.json();
-            setCategories(categoriesJson);
-        };
-        getCategories();
-    }, []);
-
+export const getServerSideProps: GetServerSideProps = async () => {
+    const res = await fetch(`${process.env.HOST}/api/category`);
+    const categories: string[] = await res.json();
+    return {
+        props: {
+            categories
+        }
+    }
+};
+const Category = ({ categories }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
     return (
         <div>
             <Head>

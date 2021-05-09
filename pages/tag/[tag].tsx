@@ -1,26 +1,24 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Col, Container, Row } from 'react-bootstrap';
 import Head from 'next/head';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import MyNavbar from '../../components/common/Navbar';
 import { ListTable } from '../../components/list';
 import { DisplayPostData } from '../../@types/PostData';
-import { useRouter } from 'next/router';
 import Header from '../../components/common/Header';
+import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 
-const Tag = () => {
-    const router = useRouter();
-    const [tagPostData, setTagPostData] = useState<DisplayPostData[]>([]);
-    const { tag } = router.query;
+export const getServerSideProps: GetServerSideProps = async ({ query }) => {
+    const { tag } = query;
+    const res = await fetch(`${process.env.HOST}/api/tag/${encodeURIComponent(tag as string)}`);
+    const tagPostData: DisplayPostData[] = await res.json();
 
-    useEffect(() => {
-        const gettagPostData = async tag => {
-            const res = await fetch(`/api/tag/${tag}`);
-            const data: DisplayPostData[] = await res.json();
-            setTagPostData(data);
-        };
-        gettagPostData(tag);
-    }, [tag]);
+    return {
+        props: { tag, tagPostData }
+    }
+};
+
+const Tag = ({ tag, tagPostData }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
     return (
         <div>
             <Head>

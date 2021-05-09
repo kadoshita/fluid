@@ -17,7 +17,7 @@ const ListItem: FC<Props> = ({ data }) => {
         router.push(`/post/${data._id}`);
     };
 
-    const added_at = (new Date(data.added_at)).toLocaleString();
+    const added_at = (new Date(data.added_at)).toLocaleString('ja-JP');
     return (
         <tr onClick={handleClick} style={{ cursor: 'pointer' }}>
             <td>{data.title}</td>

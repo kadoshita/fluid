@@ -1,26 +1,24 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Col, Container, Row } from 'react-bootstrap';
 import Head from 'next/head';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import MyNavbar from '../../components/common/Navbar';
 import { ListTable } from '../../components/list';
 import { DisplayPostData } from '../../@types/PostData';
-import { useRouter } from 'next/router';
 import Header from '../../components/common/Header';
+import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 
-const Category = () => {
-    const router = useRouter();
-    const [categoryPostData, setCategoryPostData] = useState<DisplayPostData[]>([]);
-    const { category } = router.query;
+export const getServerSideProps: GetServerSideProps = async ({ query }) => {
+    const { category } = query;
+    const res = await fetch(`${process.env.HOST}/api/category/${category}`);
+    const categoryPostData: DisplayPostData[] = await res.json();
 
-    useEffect(() => {
-        const getCategoryPostData = async category => {
-            const res = await fetch(`/api/category/${category}`);
-            const data: DisplayPostData[] = await res.json();
-            setCategoryPostData(data);
-        };
-        getCategoryPostData(category);
-    }, [category]);
+    return {
+        props: { categoryPostData, category }
+    };
+};
+
+const Category = ({ categoryPostData, category }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
     return (
         <div>
             <Head>

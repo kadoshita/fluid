@@ -1,3 +1,4 @@
+import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import Head from 'next/head';
 import React, { useEffect, useState } from 'react';
 import { Container, Row, Col, Form, Button } from 'react-bootstrap';
@@ -6,12 +7,20 @@ import Header from '../components/common/Header';
 import MyNavbar from '../components/common/Navbar';
 import { ListTable } from '../components/list';
 
-const Search = () => {
+export const getServerSideProps: GetServerSideProps = async () => {
+    const res = await fetch(`${process.env.HOST}/api/category`);
+    const categories: string[] = await res.json();
+
+    return {
+        props: { categories }
+    }
+};
+
+const Search = ({ categories }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
     const [postData, setPostData] = useState<DisplayPostData[]>([]);
     const [keyword, setKeyword] = useState<string>('');
     const [url, setUrl] = useState<string>('');
     const [category, setCategory] = useState<string>('');
-    const [categories, setCategories] = useState<string[]>([]);
 
     const handleSubmit = async () => {
         const query = new URLSearchParams({ keyword: keyword, category: category, url: url });
@@ -20,14 +29,6 @@ const Search = () => {
         setPostData(data);
     };
 
-    useEffect(() => {
-        const getCategories = async () => {
-            const res = await fetch('/api/category');
-            const resJson = await res.json();
-            setCategories(resJson);
-        };
-        getCategories();
-    }, []);
     return (
         <div>
             <Head>

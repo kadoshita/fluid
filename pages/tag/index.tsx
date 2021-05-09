@@ -1,22 +1,22 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { Container, Row, Col } from 'react-bootstrap';
 import MyNavbar from '../../components/common/Navbar';
 import Header from '../../components/common/Header';
+import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 
-const Tag = () => {
-    const [tags, setTags] = useState<string[]>([]);
+export const getServerSideProps: GetServerSideProps = async () => {
+    const res = await fetch(`${process.env.HOST}/api/tag`);
+    const tags: string[] = await res.json();
+    return {
+        props: {
+            tags
+        }
+    }
+};
 
-    useEffect(() => {
-        const getTags = async () => {
-            const res = await fetch(`/api/tag`);
-            const tagsJson: string[] = await res.json();
-            setTags(tagsJson);
-        };
-        getTags();
-    }, []);
-
+const Tag = ({ tags }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
     return (
         <div>
             <Head>

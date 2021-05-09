@@ -1,29 +1,26 @@
-import { useRouter } from 'next/router';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Head from 'next/head';
 import { Container, Row, Col, Card } from 'react-bootstrap';
 import { DisplayPostData } from '../../@types/PostData';
 import MyNavbar from '../../components/common/Navbar';
 import Link from 'next/link';
 import Header from '../../components/common/Header';
+import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 
-const Post = () => {
-    const router = useRouter();
-    const [postData, setPostData] = useState<DisplayPostData>(null);
-    const { id } = router.query;
+export const getServerSideProps: GetServerSideProps = async ({ params }) => {
+    const id = params.id;
+    if (!id) {
+        return;
+    }
+    const res = await fetch(`${process.env.HOST}/api/post/${id}`);
+    const postData: DisplayPostData = await res.json();
 
-    useEffect(() => {
-        const getPostData = async id => {
-            if (!id) {
-                return;
-            }
-            const res = await fetch(`/api/post/${id}`);
-            const postData: DisplayPostData = await res.json();
-            setPostData(postData);
-        };
-        getPostData(id);
-    }, [id]);
+    return {
+        props: { postData, id }
+    }
+};
 
+const Post = ({ postData, id }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
     return (
         <div>
             <Head>
@@ -42,7 +39,7 @@ const Post = () => {
                     <Col>
                         {(() => {
                             if (postData) {
-                                const added_at = (new Date(postData.added_at)).toLocaleString();
+                                const added_at = (new Date(postData.added_at)).toLocaleString('ja-JP');
                                 return (
                                     <div>
                                         <Card className="text-center">

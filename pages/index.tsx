@@ -6,18 +6,19 @@ import MyNavbar from '../components/common/Navbar';
 import { ListTable } from '../components/list';
 import { DisplayPostData } from '../@types/PostData';
 import Header from '../components/common/Header';
+import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 
-const Home = () => {
-  const [postData, setPostData] = useState<DisplayPostData[]>([]);
+export const getServerSideProps: GetServerSideProps = async () => {
+  const res = await fetch(`${process.env.HOST}/api/post`);
+  const data: DisplayPostData[] = await res.json();
+  return {
+    props: {
+      data
+    }
+  }
+};
 
-  useEffect(() => {
-    const getPostData = async () => {
-      const res = await fetch('/api/post');
-      const data: DisplayPostData[] = await res.json();
-      setPostData(data);
-    };
-    getPostData();
-  }, []);
+const Home = ({ data }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   return (
     <div>
       <Head>
@@ -33,7 +34,7 @@ const Home = () => {
       <Container fluid>
         <Row>
           <Col>
-            <ListTable data={postData}></ListTable>
+            <ListTable data={data}></ListTable>
           </Col>
         </Row>
       </Container>
