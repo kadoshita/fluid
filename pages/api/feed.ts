@@ -30,7 +30,10 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
             title: `fluid - ${post.title}`,
             description: post.description,
             date: new Date(post.added_at),
-            url: `${url}/post/${post._id}`
+            url: `${url}/post/${post._id}`,
+            enclosure: {
+                url: post.image ? post.image : 'https://fluid.sublimer.me/logo.png'
+            }
         });
     });
 
