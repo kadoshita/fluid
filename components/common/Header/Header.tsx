@@ -21,10 +21,10 @@ const Header = (props: HeaderProps) => {
             <meta property="og:site_name" content={props.title} />
             <meta name="twitter:card" content="summary_large_image" />
             <meta name="twitter:site" content="@lz650sss" />
-            <meta name="twitter:url" content={props.image} />
+            <meta name="twitter:url" content={props.url} />
             <meta name="twitter:title" content={props.title} />
             <meta name="twitter:description" content={props.description} />
-            <meta name="twitter:image" content={props.image} />
+            <meta name="twitter:image" content='https://fluid.sublimer.me/logo.png' />
             <link rel="canonical" href={props.url} />
         </>
     )

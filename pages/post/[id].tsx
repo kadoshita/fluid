@@ -29,7 +29,7 @@ const Post = ({ postData, id }: InferGetServerSidePropsType<typeof getServerSide
                 <Header title={`fluid - ${postData ? postData.title : ''}`}
                     url={`https://fluid.sublimer.me/post/${id}`}
                     description='An application for Web clipping and sharing.'
-                    image='https://fluid.sublimer.me/logo.png'
+                    image={postData.image ? postData.image : 'https://fluid.sublimer.me/logo.png'}
                     type='article'
                     keywords='RSS,Portal,News,Technology'></Header>
             </Head>
