@@ -1,14 +1,17 @@
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import Head from 'next/head';
-import React, { useEffect, useState } from 'react';
+import absoluteUrl from 'next-absolute-url';
+import React, { useState } from 'react';
 import { Container, Row, Col, Form, Button } from 'react-bootstrap';
 import { DisplayPostData } from '../@types/PostData';
 import Header from '../components/common/Header';
 import MyNavbar from '../components/common/Navbar';
 import { ListTable } from '../components/list';
 
-export const getServerSideProps: GetServerSideProps = async () => {
-    const res = await fetch(`${process.env.HOST}/api/category`);
+export const getServerSideProps: GetServerSideProps = async ({ req }) => {
+    const { protocol, host } = absoluteUrl(req, 'localhost:3000');
+    const apiBaseURL = `${protocol}//${host}`;
+    const res = await fetch(`${apiBaseURL}/api/category`);
     const categories: string[] = await res.json();
 
     return {

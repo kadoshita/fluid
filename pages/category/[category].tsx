@@ -1,6 +1,7 @@
 import React from 'react';
 import { Col, Container, Row } from 'react-bootstrap';
 import Head from 'next/head';
+import absoluteUrl from 'next-absolute-url';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import MyNavbar from '../../components/common/Navbar';
 import { ListTable } from '../../components/list';
@@ -8,9 +9,11 @@ import { DisplayPostData } from '../../@types/PostData';
 import Header from '../../components/common/Header';
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 
-export const getServerSideProps: GetServerSideProps = async ({ query }) => {
+export const getServerSideProps: GetServerSideProps = async ({ query, req }) => {
+    const { protocol, host } = absoluteUrl(req, 'localhost:3000');
+    const apiBaseURL = `${protocol}//${host}`;
     const { category } = query;
-    const res = await fetch(`${process.env.HOST}/api/category/${category}`);
+    const res = await fetch(`${apiBaseURL}/api/category/${category}`);
     const categoryPostData: DisplayPostData[] = await res.json();
 
     return {
