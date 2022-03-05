@@ -2,8 +2,10 @@ version: '3'
 
 services: 
   db:
-    image: mongo:3.6.23-xenial
+    image: mongo:4.0.28-xenial
     restart: always
+    ports:
+      - 27017:27017
     volumes: 
       - ./mongo:/data/db
     environment:
