@@ -1,17 +1,17 @@
 version: '3'
 
-services: 
-  db:
-    image: mongo:4.0.28-xenial
-    restart: always
-    ports:
-      - 27017:27017
-    volumes: 
-      - ./mongo:/data/db
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: fluid
-      MONGO_INITDB_ROOT_PASSWORD: fluid
-      MONGO_INITDB_DATABASE: fluid
+services:
+    db:
+        image: mongo:6.0.5
+        restart: always
+        ports:
+            - 27017:27017
+        volumes:
+            - ./mongo:/data/db
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: fluid
+            MONGO_INITDB_ROOT_PASSWORD: fluid
+            MONGO_INITDB_DATABASE: fluid
 
     app:
         image: fluid
