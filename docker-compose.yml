@@ -13,18 +13,18 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: fluid
       MONGO_INITDB_DATABASE: fluid
 
-  app:
-    image: fluid
-    build: 
-      context: .
-      dockerfile: ./Dockerfile
-    restart: always
-    ports: 
-      - 8083:3000
-    depends_on: 
-      - db
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f -s -S -o /dev/null http://localhost:3000/api/health || exit 1"]
-      timeout: 20s
-      retries: 50
-    env_file: ./.env.production.local
+    app:
+        image: fluid
+        build:
+            context: .
+            dockerfile: ./Dockerfile
+        restart: always
+        ports:
+            - 8083:3000
+        depends_on:
+            - db
+        healthcheck:
+            test: ['CMD-SHELL', 'curl -f -s -S -o /dev/null http://localhost:3000/api/health || exit 1']
+            timeout: 20s
+            retries: 50
+        env_file: ./.env.production.local
