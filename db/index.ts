@@ -1,21 +1,17 @@
-import { Db, MongoClient } from 'mongodb';
+import { Db, MongoClient, MongoClientOptions } from 'mongodb';
 
 const { MONGODB_URI, MONGODB_DB } = process.env;
 
 if (!MONGODB_URI) {
-    throw new Error(
-        'Please define the MONGODB_URI environment variable inside .env.local'
-    );
+    throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
 }
 
 if (!MONGODB_DB) {
-    throw new Error(
-        'Please define the MONGODB_DB environment variable inside .env.local'
-    );
+    throw new Error('Please define the MONGODB_DB environment variable inside .env.local');
 }
 
 interface mongo {
-    conn: { client: MongoClient, db: Db };
+    conn: { client: MongoClient; db: Db };
     promise: any;
 }
 
@@ -31,12 +27,9 @@ export async function connectToDatabase() {
     }
 
     if (!cached.promise) {
-        const opts = {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-        };
+        const opts: MongoClientOptions = {};
 
-        cached.promise = MongoClient.connect(MONGODB_URI, opts).then(async client => {
+        cached.promise = MongoClient.connect(MONGODB_URI, opts).then(async (client) => {
             const db = client.db(MONGODB_DB);
             await db.collection('posts').createIndex({ title: 1, url: 1 }, { unique: true });
             return {

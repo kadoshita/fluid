@@ -1,6 +1,6 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import { DisplayPostData } from "../../../../@types/PostData";
-import { connectToDatabase } from "../../../../db";
+import { NextApiRequest, NextApiResponse } from 'next';
+import { DisplayPostData } from '../../../../@types/PostData';
+import { connectToDatabase } from '../../../../db';
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
     try {
@@ -8,15 +8,19 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         const { db } = await connectToDatabase();
 
         const now = new Date();
-        const before7d = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
+        const before7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-        const latest7dPosts: DisplayPostData[] = await db.collection('posts').find({
-            "added_at": {
-                "$gte": before7d,
-                "$lt": now
-            },
-            "category": category
-        }).sort({ added_at: -1 }).toArray();
+        const latest7dPosts = await db
+            .collection<DisplayPostData>('posts')
+            .find({
+                added_at: {
+                    $gte: before7d,
+                    $lt: now,
+                },
+                category: category,
+            })
+            .sort({ added_at: -1 })
+            .toArray();
 
         if (latest7dPosts) {
             return res.status(200).json(latest7dPosts);

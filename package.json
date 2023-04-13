@@ -3,10 +3,10 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "dev": "NODE_ICU_DATA=node_modules/full-icu next dev",
-    "build": "NODE_ICU_DATA=node_modules/full-icu next build",
-    "start": "NODE_ICU_DATA=node_modules/full-icu node server.js",
-    "nextstart": "NODE_ICU_DATA=node_modules/full-icu next start"
+    "dev": "NODE_ICU_DATA=node_modules/full-icu TZ='Asia/Tokyo' next dev",
+    "build": "NODE_ICU_DATA=node_modules/full-icu TZ='Asia/Tokyo' next build",
+    "start": "NODE_ICU_DATA=node_modules/full-icu TZ='Asia/Tokyo' node server.js",
+    "nextstart": "NODE_ICU_DATA=node_modules/full-icu TZ='Asia/Tokyo' next start"
   },
   "dependencies": {
     "bootstrap": "^5.2.3",

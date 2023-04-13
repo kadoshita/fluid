@@ -48,11 +48,11 @@ const Post = ({ postData, id }: InferGetServerSidePropsType<typeof getServerSide
                                         <Card className="text-center">
                                             <Card.Body>
                                                 <Card.Title>{postData.title}</Card.Title>
-                                                <Card.Subtitle><Link href={`/category/${postData.category}`}><a>{postData.category}</a></Link></Card.Subtitle>
+                                                <Card.Subtitle><Link href={`/category/${postData.category}`}>{postData.category}</Link></Card.Subtitle>
                                                 <Card.Link href={postData.url} target="_blank">{postData.url}</Card.Link>
                                                 <Card.Text className="text-left">{postData.description}</Card.Text>
                                                 <Card.Img src={postData.image} style={{ width: '18rem' }}></Card.Img>
-                                                <Card.Text>{postData.tag.map((t, i) => <Link key={i} href={`/tag/${t}`}><a style={{ marginRight: '8px' }}>{t}</a></Link>)}</Card.Text>
+                                                <Card.Text>{postData.tag.map((t, i) => <Link key={i} href={`/tag/${t}`} style={{ marginRight: '8px' }}>{t}</Link>)}</Card.Text>
                                             </Card.Body>
                                             <Card.Footer className="text-muted">Added at: {added_at}</Card.Footer>
                                         </Card>
