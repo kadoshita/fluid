@@ -37,7 +37,7 @@ const Tag = ({ tags }: InferGetServerSidePropsType<typeof getServerSideProps>) =
                 <Row>
                     <Col>
                         <ul>
-                            {tags.map((t, i) => <li key={i}><Link href={`/tag/${t}`}><a>{t}</a></Link></li>)}
+                            {tags.map((t, i) => <li key={i}><Link href={`/tag/${t}`}>{t}</Link></li>)}
                         </ul>
                     </Col>
                 </Row>

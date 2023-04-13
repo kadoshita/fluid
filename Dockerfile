@@ -1,4 +1,4 @@
-FROM node:14.16.0-buster
+FROM node:18.15.0-bullseye-slim
 
 WORKDIR /usr/local/src
 ENV TZ Asia/Tokyo
