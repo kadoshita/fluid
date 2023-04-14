@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { DisplayPostData } from '../../@types/PostData';
 import { connectToDatabase } from '../../db';
+import { Filter } from 'mongodb';
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
     try {
@@ -9,13 +10,23 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         const url: string = req.query.url as string;
         const { db } = await connectToDatabase();
 
-        const keywordRegexp = new RegExp(keyword, 'i');
-        const urlRegexp = new RegExp(url, 'i');
-        const findQuery = {
-            $and: [
-                {
-                    $or: [{ title: keywordRegexp }, { description: keywordRegexp }],
+        const keywordList = keyword.split(/\s+/);
+        const keywordQueries: Filter<DisplayPostData>[] = keywordList.map((word) => {
+            const keywordRegexp = new RegExp(word, 'i');
+            return {
+                title: {
+                    $regex: keywordRegexp,
                 },
+                description: {
+                    $regex: keywordRegexp,
+                },
+            };
+        });
+
+        const urlRegexp = new RegExp(url, 'i');
+        const findQuery: Filter<DisplayPostData> = {
+            $and: [
+                ...keywordQueries,
                 category === '' ? {} : { category: category },
                 url === '' ? {} : { url: urlRegexp },
             ],
