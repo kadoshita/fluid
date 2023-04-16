@@ -34,6 +34,9 @@ const MyNavbar = () => {
                     <Nav.Link href="https://twitter.com/fluid_share" target="_blank">
                         Twitter
                     </Nav.Link>
+                    <Nav.Link href="https://mstdn.sublimer.me/@fluid" target="_blank">
+                        Mastodon
+                    </Nav.Link>
                 </Nav>
             </Navbar.Collapse>
         </Navbar>
