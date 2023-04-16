@@ -1,0 +1,80 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+env:
+  IMAGE_NAME: fluid
+  REGISTRY: ghcr.io
+
+jobs:
+  verup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - name: Get version
+      id: get_version
+      run: echo "version=${GITHUB_REF##*/}" >> $GITHUB_OUTPUT
+    - uses: actions/checkout@v3
+      with:
+        ref: master
+    - name: Update package version
+      run: |
+        npm version from-git --no-git-tag-version
+    - name: Commit and push
+      run: |
+        git config user.name 'github-actions[bot]'
+        git config user.email 'github-actions[bot]@users.noreply.github.com'
+        git add .
+        git commit -m "Update version to ${{ steps.get_version.outputs.version }}"
+        git push -u origin master
+
+  build-image:
+    runs-on: ubuntu-latest
+    needs:
+      - verup
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          ref: master
+      - name: Get version
+        id: get_version
+        run: echo "version=${GITHUB_REF##*/}" >> $GITHUB_OUTPUT
+      - name: Log into registry ${{ env.REGISTRY }}
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/kadoshita/${{ env.IMAGE_NAME }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          push: true
+          context: .
+          tags: ${{ env.REGISTRY }}/kadoshita/${{ env.IMAGE_NAME }}:${{ steps.get_version.outputs.version }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  release:
+    runs-on: ubuntu-latest
+    needs:
+      - verup
+    permissions:
+      contents: write
+    steps:
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        generate_release_notes: true
