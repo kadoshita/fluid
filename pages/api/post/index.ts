@@ -25,9 +25,21 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     } else if (req.method === 'POST') {
         if (req.headers['authorization'] && req.headers['authorization'] === `Bearer ${process.env.API_TOKEN}`) {
             try {
-                const postData: InsertPostData = { ...req.body, added_at: new Date() };
+                const added_at = new Date();
+                const postData: InsertPostData = { ...req.body, added_at };
                 const { db } = await connectToDatabase();
                 await db.collection('posts').insertOne(postData);
+
+                const { url, category } = req.body;
+                const _url = new URL(url);
+                const domain = _url.host;
+
+                await db.collection('domains').insertOne({
+                    domain,
+                    category,
+                    added_at,
+                });
+
                 return res.status(200).end();
             } catch (e) {
                 console.error(e);
