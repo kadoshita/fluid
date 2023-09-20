@@ -32,6 +32,7 @@ export async function connectToDatabase() {
         cached.promise = MongoClient.connect(MONGODB_URI, opts).then(async (client) => {
             const db = client.db(MONGODB_DB);
             await db.collection('posts').createIndex({ title: 1, url: 1 }, { unique: true });
+            await db.collection('domains').createIndex({ domain: 1 }, { unique: false });
             return {
                 client,
                 db,
