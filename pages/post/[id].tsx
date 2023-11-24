@@ -51,6 +51,7 @@ const Post = ({ postData, id }: InferGetServerSidePropsType<typeof getServerSide
                                                 <Card.Subtitle><Link href={`/category/${postData.category}`}>{postData.category}</Link></Card.Subtitle>
                                                 <Card.Link href={postData.url} target="_blank">{postData.url}</Card.Link>
                                                 <Card.Text className="text-left">{postData.description}</Card.Text>
+                                                <Card.Text className="text-left">{postData.comment}</Card.Text>
                                                 <Card.Img src={postData.image} style={{ width: '18rem' }}></Card.Img>
                                                 <Card.Text>{postData.tag.map((t, i) => <Link key={i} href={`/tag/${t}`} style={{ marginRight: '8px' }}>{t}</Link>)}</Card.Text>
                                             </Card.Body>
