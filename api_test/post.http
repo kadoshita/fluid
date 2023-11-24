@@ -11,5 +11,9 @@ Authorization: Bearer token
 
 {
     "title": "Google_1",
-    "url": "https://www.google.com/"
+    "url": "https://www.google.com/",
+    "category":"misc",
+    "description":"test",
+    "comment": "test comment",
+    "tag":[]
 }
