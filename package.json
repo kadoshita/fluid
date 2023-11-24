@@ -1,6 +1,6 @@
 {
   "name": "fluid",
-  "version": "1.5.1",
+  "version": "1.6.0",
   "private": true,
   "scripts": {
     "dev": "NODE_ICU_DATA=node_modules/full-icu TZ='Asia/Tokyo' next dev",
