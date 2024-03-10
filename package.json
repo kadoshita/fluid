@@ -1,0 +1,22 @@
+{
+  "name": "fluid",
+  "version": "2.0.0-alpha.1",
+  "private": true,
+  "description": "An application for Web clipping and sharing.",
+  "scripts": {
+    "fmt": "prettier . --write",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "sublimer <sublimer.me@gmail.com> (https://sublimer.me/)",
+  "license": "MIT",
+  "workspaces": [
+    "apps/backend",
+    "apps/frontend",
+    "apps/extension"
+  ],
+  "devDependencies": {
+    "@types/node": "^20.11.25",
+    "prettier": "^3.2.5",
+    "typescript": "^5.4.2"
+  }
+}
