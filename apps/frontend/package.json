@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "build": "vite build",
     "test": "vitest"
   },
   "author": "sublimer <sublimer.me@gmail.com> (https://sublimer.me/)",
