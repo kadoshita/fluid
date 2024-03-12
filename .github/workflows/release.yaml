@@ -1,0 +1,30 @@
+name: Create Release
+run-name: ${{ github.event.pull_request.title }}
+
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  create_release:
+    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'release/')
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+    steps:
+      - name: Get package name and version
+        id: get_package_name_and_version
+        run: |
+          PACKAGE_NAME=$(echo ${{ github.event.pull_request.head.ref }} | cut -d'/' -f2)
+          VERSION=$(echo ${{ github.event.pull_request.head.ref }} | cut -d'/' -f3)
+          echo "PACKAGE_NAME=$PACKAGE_NAME" >> $GITHUB_OUTPUT
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          name: Release ${{ steps.get_package_name_and_version.outputs.PACKAGE_NAME }} ${{ steps.get_package_name_and_version.outputs.VERSION }}
+          tag_name: ${{ steps.get_package_name_and_version.outputs.PACKAGE_NAME }}@${{ steps.get_package_name_and_version.outputs.VERSION }}
+          prerelease: ${{ contains(steps.get_package_name_and_version.outputs.VERSION, 'beta') || contains(steps.get_package_name_and_version.outputs.VERSION, 'alpha') }}
