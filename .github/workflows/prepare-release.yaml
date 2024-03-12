@@ -1,0 +1,52 @@
+name: Prepare Release
+run-name: Prepare Release for ${{ github.event.inputs.target_package }} ${{ github.event.inputs.release_version }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'Release version'
+        required: true
+        default: 'v1.0.0'
+      target_package:
+        description: 'Target package'
+        required: true
+        default: 'frontend'
+        type: choice
+        options:
+          - frontend
+          - backend
+          - extension
+
+jobs:
+  prepare_release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update Package Version and root version
+        if: github.event.inputs.target_package == 'backend'
+        run: npm -w apps/${{ github.event.inputs.target_package }} version --no-git-tag-version --include-workspace-root ${{ github.event.inputs.release_version }}
+
+      - name: Update Package Version
+        if: github.event.inputs.target_package != 'backend'
+        run: npm -w apps/${{ github.event.inputs.target_package }} version --no-git-tag-version ${{ github.event.inputs.release_version }}
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: release/${{ github.event.inputs.target_package }}/${{ github.event.inputs.release_version }}
+          base: ${{ github.ref_name }}
+          delete-branch: true
+          title: 'Release ${{ github.event.inputs.target_package }} ${{ github.event.inputs.release_version }}'
+          body: 'This pull request is for releasing version ${{ github.event.inputs.release_version }} of the ${{ github.event.inputs.target_package }} package.'
+          committer: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
+          author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
+          commit-message: 'Update version to ${{ github.event.inputs.release_version }}'
+          labels: prepare-release
+          reviewers: ${{ github.actor }}
