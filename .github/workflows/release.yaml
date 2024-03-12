@@ -10,7 +10,9 @@ jobs:
   create_release:
     if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'release/')
     runs-on: ubuntu-latest
-
+    outputs:
+      package_name: ${{ steps.output.outputs.package_name }}
+      version: ${{ steps.output.outputs.version }}
     permissions:
       contents: write
     steps:
@@ -28,3 +30,16 @@ jobs:
           name: Release ${{ steps.get_package_name_and_version.outputs.PACKAGE_NAME }} ${{ steps.get_package_name_and_version.outputs.VERSION }}
           tag_name: ${{ steps.get_package_name_and_version.outputs.PACKAGE_NAME }}@${{ steps.get_package_name_and_version.outputs.VERSION }}
           prerelease: ${{ contains(steps.get_package_name_and_version.outputs.VERSION, 'beta') || contains(steps.get_package_name_and_version.outputs.VERSION, 'alpha') }}
+      - name: Set output
+        id: output
+        run: |
+          echo "package_name=${{ steps.get_package_name_and_version.outputs.PACKAGE_NAME }}" >> "$GITHUB_OUTPUT"
+          echo "version=${{ steps.get_package_name_and_version.outputs.VERSION }}" >> "$GITHUB_OUTPUT"
+
+  deploy_frontend:
+    needs: create_release
+    if: needs.create_release.result == 'success' && needs.create_release.outputs.package_name == 'frontend'
+    uses: kadoshita/fluid/.github/workflows/deploy-frontend.yaml@v2
+    with:
+      environment: ${{ (contains(needs.create_release.outputs.version, 'beta') || contains(needs.create_release.outputs.version, 'alpha')) && 'Development' || 'Production'}}
+    secrets: inherit

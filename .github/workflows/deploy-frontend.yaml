@@ -3,6 +3,12 @@ run-name: Deploy frontend to Cloudflare Pages on ${{ github.event.inputs.environ
 
 on:
   workflow_call:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'Development'
+        type: string
   workflow_dispatch:
     inputs:
       environment:
