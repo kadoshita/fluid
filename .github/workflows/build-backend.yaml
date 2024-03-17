@@ -1,0 +1,91 @@
+name: Build Backend
+
+on:
+  workflow_call:
+    inputs:
+      type:
+        description: 'Build type'
+        required: true
+        default: 'container'
+        type: string
+  workflow_dispatch:
+    inputs:
+      type:
+        description: 'Build type'
+        required: true
+        default: 'container'
+        type: choice
+        options:
+          - container
+          - package
+
+jobs:
+  build_package:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.type == 'package' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build app
+        run: npm run build -w apps/backend
+
+      - name: Install dependencies for production
+        run: npm ci --omit=dev --ignore-scripts
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-build
+          path: |
+            apps/backend/build
+            apps/backend/package.json
+            apps/backend/node_modules
+            node_modules
+
+  build_container:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.type == 'container' }}
+    permissions:
+      id-token: write
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.VERSION }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get package version
+        id: version
+        run: echo "VERSION=$(jq -r -c '.version' apps/backend/package.json)" >> $GITHUB_OUTPUT
+
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          create_credentials_file: true
+          export_environment_variables: true
+          workload_identity_provider: '${{ secrets.WIF_PROVIDER }}'
+          service_account: '${{ secrets.WIF_PUSH_CONTAINER_IMAGE_SERVICE_ACCOUNT }}'
+
+      - name: Docker login
+        run: gcloud auth configure-docker --quiet us-west1-docker.pkg.dev
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: us-west1-docker.pkg.dev/${{ steps.auth.outputs.project_id }}/fluid/fluid-backend:${{ steps.version.outputs.VERSION }}
