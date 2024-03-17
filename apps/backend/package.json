@@ -5,6 +5,7 @@
   "main": "build/main.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only -r dotenv/config src/main.ts dotenv_config_path=.env.local",
+    "build": "tsc -p tsconfig.build.json",
     "test": "vitest"
   },
   "author": "sublimer <sublimer.me@gmail.com> (https://sublimer.me/)",

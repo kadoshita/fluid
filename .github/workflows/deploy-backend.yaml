@@ -1,0 +1,54 @@
+name: Build And Deploy
+
+on:
+  workflow_call:
+    inputs:
+      target:
+        description: 'Target to deploy'
+        required: true
+        default: 'cloud-run'
+        type: string
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Target to deploy'
+        required: true
+        default: 'cloud-run'
+        type: choice
+        options:
+          - cloud-run
+          - compute-engine
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build app
+        run: npm run build -w apps/backend
+
+      - name: Install dependencies for production
+        run: npm ci --omit=dev --ignore-scripts
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-build
+          path: |
+            apps/backend/build
+            apps/backend/package.json
+            apps/backend/node_modules
+            node_modules
+
