@@ -20,8 +20,9 @@ on:
           - compute-engine
 
 jobs:
-  build:
+  build-package:
     runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.target == 'compute-engine' }}
 
     steps:
       - name: Checkout code
@@ -51,4 +52,39 @@ jobs:
             apps/backend/package.json
             apps/backend/node_modules
             node_modules
+
+  build-container:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.target == 'cloud-run' }}
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get package version
+        id: version
+        run: echo "VERSION=$(jq -r -c '.version' apps/backend/package.json)" >> $GITHUB_OUTPUT
+
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          create_credentials_file: true
+          export_environment_variables: true
+          workload_identity_provider: '${{ secrets.WIF_PROVIDER }}'
+          service_account: '${{ secrets.WIF_SERVICE_ACCOUNT }}'
+
+      - name: Docker login
+        run: gcloud auth configure-docker --quiet us-west1-docker.pkg.dev
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: us-west1-docker.pkg.dev/${{ steps.auth.outputs.project_id }}/fluid/fluid-backend:${{ steps.version.outputs.VERSION }}
 
