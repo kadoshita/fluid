@@ -27,7 +27,7 @@ on:
         type: choice
         options:
           - Cloud Run
-          - compute-engine
+          - Compute Engine
       version:
         description: 'Package version'
         required: true
@@ -37,6 +37,10 @@ on:
         description: 'Package artifact name'
         required: false
         default: 'backend-build'
+        type: string
+      run_id:
+        description: 'Run ID'
+        required: false
         type: string
 
 jobs:
@@ -52,10 +56,35 @@ jobs:
         name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          create_credentials_file: true
           export_environment_variables: true
           workload_identity_provider: '${{ secrets.WIF_PROVIDER }}'
           service_account: '${{ secrets.WIF_CLOUD_RUN_DEPLOY_SERVICE_ACCOUNT }}'
 
       - name: Deploy to Cloud Run
         run: gcloud run deploy fluid-backend --image=us-west1-docker.pkg.dev/${{ steps.auth.outputs.project_id }}/fluid/fluid-backend:${{ inputs.version }} --platform=managed --region=us-west1 --allow-unauthenticated --quiet
+
+  deploy_to_compute_engine:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.target == 'Compute Engine' }}
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ github.event.inputs.package }}
+          run-id: ${{ github.event.inputs.run_id }}
+
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          export_environment_variables: true
+          workload_identity_provider: '${{ secrets.WIF_PROVIDER }}'
+          service_account: '${{ secrets.WIF_COMPUTE_ENGINE_DEPLOY_SERVICE_ACCOUNT }}'
+
+      - name: Deploy to Compute Engine
+        run: |
+          gcloud compute scp backend-build.tar.gz fluid-backend:~/ --tunnel-through-iap
