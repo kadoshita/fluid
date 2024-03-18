@@ -28,6 +28,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Get package version
+        id: version
+        run: echo "VERSION=$(jq -r -c '.version' apps/backend/package.json)" >> $GITHUB_OUTPUT
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -43,15 +47,20 @@ jobs:
       - name: Install dependencies for production
         run: npm ci --omit=dev --ignore-scripts
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+      - name: Archive package
+        run: tar czvf fluid-backend-${{ steps.version.outputs.VERSION }}.tar.gz apps/backend/build apps/backend/package.json node_modules
+
+      - id: auth
+        uses: google-github-actions/auth@v2
         with:
-          name: backend-build
-          path: |
-            apps/backend/build
-            apps/backend/package.json
-            apps/backend/node_modules
-            node_modules
+          workload_identity_provider: '${{ secrets.WIF_PROVIDER }}'
+          service_account: '${{ secrets.WIF_PACKAGE_UPLOAD_TO_GCS_SERVICE_ACCOUNT }}'
+
+      - id: upload-file
+        uses: google-github-actions/upload-cloud-storage@v2
+        with:
+          path: fluid-backend-${{ steps.version.outputs.VERSION }}.tar.gz
+          destination: fluid-backend-package
 
   build_container:
     runs-on: ubuntu-latest
