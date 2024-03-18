@@ -23,6 +23,9 @@ jobs:
   build_package:
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.type == 'package' }}
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
       - name: Checkout code
