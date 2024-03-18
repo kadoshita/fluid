@@ -66,4 +66,4 @@ jobs:
           service_account: '${{ secrets.WIF_COMPUTE_ENGINE_DEPLOY_SERVICE_ACCOUNT }}'
 
       - name: Deploy to Compute Engine
-        run: gcloud compute instances add-metadata fluid-backend --metadata=fluid-backend-version=${{ inputs.version }}
+        run: gcloud compute instances add-metadata fluid-backend --metadata=fluid-backend-version=${{ inputs.version }} --zone=us-west1-a
