@@ -148,3 +148,5 @@ dist
 playwright-report/
 
 build/
+
+tempo-data/

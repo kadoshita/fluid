@@ -2,7 +2,13 @@ import fastify from 'fastify';
 import { registerRoutes } from './routes';
 
 const app = fastify({
-  logger: true,
+  logger:
+    process.env.NODE_ENV === 'development'
+      ? {
+          file: '../../observability/log/stdout.log',
+        }
+      : true,
+  trustProxy: '127.0.0.1',
 });
 
 registerRoutes(app);
