@@ -22,4 +22,4 @@ COPY --from=builder /app/node_modules/ /app/node_modules/
 EXPOSE 3000
 ENV NODE_ENV=production
 
-CMD ["apps/backend/build/main.js"]
+CMD ["-r", "/app/apps/backend/build/opentelemetry.js", "/app/apps/backend/build/main.js"]
