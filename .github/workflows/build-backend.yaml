@@ -26,6 +26,8 @@ jobs:
     permissions:
       id-token: write
       contents: read
+    outputs:
+      version: ${{ steps.version.outputs.VERSION }}
 
     steps:
       - name: Checkout code
@@ -101,3 +103,21 @@ jobs:
           file: Dockerfile
           push: true
           tags: us-west1-docker.pkg.dev/${{ steps.auth.outputs.project_id }}/fluid/fluid-backend:${{ steps.version.outputs.VERSION }}
+
+  deploy_backend_to_compute_engine:
+    needs: build_package
+    if: needs.build_package.result == 'success'
+    uses: kadoshita/fluid/.github/workflows/deploy-backend.yaml@v2
+    with:
+      target: 'Compute Engine'
+      version: ${{ needs.build_package.outputs.version }}
+    secrets: inherit
+
+  deploy_backend_to_cloud_run:
+    needs: build_container
+    if: needs.build_container.result == 'success'
+    uses: kadoshita/fluid/.github/workflows/deploy-backend.yaml@v2
+    with:
+      target: 'Cloud Run'
+      version: ${{ needs.build_container.outputs.version }}
+    secrets: inherit
