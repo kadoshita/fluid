@@ -2,8 +2,9 @@ import { NodeSDK } from '@opentelemetry/sdk-node';
 import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node';
 import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-base';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
-import { ConsoleMetricExporter, PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
+import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
 import { TraceExporter } from '@google-cloud/opentelemetry-cloud-trace-exporter';
+import { MetricExporter } from '@google-cloud/opentelemetry-cloud-monitoring-exporter';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc';
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-grpc';
 
@@ -36,7 +37,7 @@ if (process.env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT && process.env.OTEL_EXPORTER_
   const sdk = new NodeSDK({
     traceExporter: new TraceExporter(),
     metricReader: new PeriodicExportingMetricReader({
-      exporter: new ConsoleMetricExporter(),
+      exporter: new MetricExporter(),
     }),
     instrumentations: [
       getNodeAutoInstrumentations({
