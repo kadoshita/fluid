@@ -1,13 +1,31 @@
 import fastify from 'fastify';
 import { registerRoutes } from './routes';
+import { PinoLoggerOptions } from 'fastify/types/logger';
+
+const CLOUD_LOGGING_TRACE_LOG_PREFIX = process.env.CLOUD_LOGGING_TRACE_LOG_PREFIX ?? '/';
+
+const commonLoggingOptions: PinoLoggerOptions = {
+  formatters: {
+    log(object) {
+      if ('trace_id' in object && typeof object.trace_id === 'string') {
+        object['logging.googleapis.com/trace'] = `${CLOUD_LOGGING_TRACE_LOG_PREFIX}${object.trace_id}`;
+      }
+      if ('span_id' in object && typeof object.span_id === 'string') {
+        object['logging.googleapis.com/spanId'] = object.span_id;
+      }
+      return object;
+    },
+  },
+};
 
 const app = fastify({
   logger:
     process.env.NODE_ENV === 'development'
       ? {
+          ...commonLoggingOptions,
           file: '../../observability/log/stdout.log',
         }
-      : true,
+      : commonLoggingOptions,
   trustProxy: '127.0.0.1',
 });
 
