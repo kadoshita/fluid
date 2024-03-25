@@ -1,10 +1,7 @@
 name: Test (frontend)
 
 on:
-  push:
-    paths:
-      - 'apps/frontend/**'
-      - '.github/workflows/test-frontend.yaml'
+  workflow_call:
 
 jobs:
   test:
@@ -22,6 +19,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Build
+        run: npm run build -w apps/frontend
 
       - name: Run tests
         run: npm test -w apps/frontend

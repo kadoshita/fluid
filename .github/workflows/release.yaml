@@ -39,7 +39,19 @@ jobs:
   deploy_frontend:
     needs: create_release
     if: needs.create_release.result == 'success' && needs.create_release.outputs.package_name == 'frontend'
-    uses: kadoshita/fluid/.github/workflows/deploy-frontend.yaml@v2
+    uses: ./.github/workflows/deploy-frontend.yaml
     with:
       environment: ${{ (contains(needs.create_release.outputs.version, 'beta') || contains(needs.create_release.outputs.version, 'alpha')) && 'Development' || 'Production'}}
+    secrets: inherit
+
+  deploy_backend_container:
+    needs: create_release
+    if: needs.create_release.result == 'success' && needs.create_release.outputs.package_name == 'backend'
+    uses: ./.github/workflows/deploy-backend-container.yaml
+    secrets: inherit
+
+  deploy_backend_package:
+    needs: create_release
+    if: needs.create_release.result == 'success' && needs.create_release.outputs.package_name == 'backend'
+    uses: ./.github/workflows/deploy-backend-package.yaml
     secrets: inherit

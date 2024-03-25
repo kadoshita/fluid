@@ -18,8 +18,12 @@ on:
         type: environment
 
 jobs:
-  build-and-deploy:
+  test:
+    uses: ./.github/workflows/test-frontend.yaml
+
+  deploy:
     runs-on: ubuntu-latest
+    needs: test
 
     steps:
       - name: Checkout code

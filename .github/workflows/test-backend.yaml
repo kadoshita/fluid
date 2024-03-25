@@ -1,10 +1,7 @@
 name: Test (backend)
 
 on:
-  push:
-    paths:
-      - 'apps/backend/**'
-      - '.github/workflows/test-backend.yaml'
+  workflow_call:
 
 jobs:
   test:
@@ -22,6 +19,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Build
+        run: npm run build -w apps/backend
 
       - name: Run tests
         run: npm test -w apps/backend
