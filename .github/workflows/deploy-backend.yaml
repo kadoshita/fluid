@@ -1,4 +1,5 @@
 name: Deploy Backend
+run-name: Deploy Backend ${{ github.event.inputs.version }} to ${{ github.event.inputs.target }}
 
 on:
   workflow_call:
@@ -51,12 +52,17 @@ jobs:
 
   deploy_to_compute_engine:
     runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.target == 'Compute Engine' }}
+    # if: ${{ github.event.inputs.target == 'Compute Engine' }}
     permissions:
       id-token: write
       contents: read
 
     steps:
+      - name: debug
+        run: |
+          echo ${{ github.event.inputs.target }}
+          echo ${{ github.event.inputs.version }}
+
       - id: auth
         name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
