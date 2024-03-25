@@ -19,8 +19,12 @@ on:
           - extension
 
 jobs:
+  test:
+    uses: ./.github/workflows/test.yaml
+
   prepare_release:
     runs-on: ubuntu-latest
+    needs: test
     permissions:
       contents: write
       pull-requests: write

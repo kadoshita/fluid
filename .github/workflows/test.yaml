@@ -1,0 +1,57 @@
+name: Test
+
+on:
+  push:
+    branches-ignore:
+      - 'master'
+  workflow_call:
+
+jobs:
+  check-changes:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_call'
+    outputs:
+      backend: ${{ steps.check-changes.outputs.backend }}
+      frontend: ${{ steps.check-changes.outputs.frontend }}
+      extension: ${{ steps.check-changes.outputs.extension }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Check changes
+        id: check-changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            backend:
+              - 'apps/backend/**'
+              - 'package.json'
+              - 'package-lock.json'
+              - 'tsconfig.json'
+              - '.github/workflows/test*.yaml'
+            frontend:
+              - 'apps/frontend/**'
+              - 'package.json'
+              - 'package-lock.json'
+              - 'tsconfig.json'
+              - '.github/workflows/test*.yaml'
+            extension:
+              - 'apps/extension/**'
+              - 'package.json'
+              - 'package-lock.json'
+              - 'tsconfig.json'
+              - '.github/workflows/test*.yaml'
+
+  test-backend:
+    needs: check-changes
+    if: ${{ needs.check-changes.outputs.backend == 'true' || github.event_name == 'workflow_call' }}
+    uses: ./.github/workflows/test-backend.yaml
+
+  test-frontend:
+    needs: check-changes
+    if: ${{ needs.check-changes.outputs.frontend == 'true' || github.event_name == 'workflow_call' }}
+    uses: ./.github/workflows/test-frontend.yaml
+
+  test-extension:
+    needs: check-changes
+    if: ${{ needs.check-changes.outputs.extension == 'true' || github.event_name == 'workflow_call' }}
+    uses: ./.github/workflows/test-extension.yaml
