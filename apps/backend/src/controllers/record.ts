@@ -42,3 +42,32 @@ export const createRecord = async (
     throw error;
   }
 };
+
+export type GetRecordByIdParams = {
+  id: string;
+};
+export const getRecordByIdSchema: FastifySchema = {
+  params: {
+    type: 'object',
+    required: ['id'],
+    properties: {
+      id: { type: 'string', format: 'uuid' },
+    },
+  },
+};
+
+export const getRecordById = async (
+  req: FastifyRequest<{
+    Params: GetRecordByIdParams;
+  }>,
+  reply: FastifyReply,
+) => {
+  const { id } = req.params;
+  const record = await Record.FindById(id);
+  if (!record) {
+    return reply.code(404).send({
+      message: 'Record not found',
+    });
+  }
+  return reply.send(record);
+};

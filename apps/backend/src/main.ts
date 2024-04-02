@@ -46,7 +46,7 @@ const app = fastify({
     process.env.NODE_ENV === 'development'
       ? {
           ...commonLoggingOptions,
-          file: '../../observability/log/stdout.log',
+          // file: '../../observability/log/stdout.log',
         }
       : commonLoggingOptions,
   trustProxy: '127.0.0.1',

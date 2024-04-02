@@ -3,6 +3,7 @@ import { Category } from './category';
 import { db } from '../db/client';
 import { records } from '../db/schema';
 import { PostgresError } from 'postgres';
+import { eq } from 'drizzle-orm';
 
 export class RecordAlreadyExistsError extends Error {
   public readonly statusCode = 409;
@@ -60,5 +61,23 @@ export class Record {
 
       throw error;
     }
+  }
+
+  public static async FindById(id: string) {
+    const record = await db.query.records.findFirst({
+      where: eq(records.id, id),
+      with: {
+        category: {
+          columns: {
+            name: true,
+          },
+        },
+      },
+    });
+    return record;
+  }
+
+  public async delete() {
+    await db.delete(records).where(eq(records.id, this.id));
   }
 }

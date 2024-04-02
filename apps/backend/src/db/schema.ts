@@ -42,3 +42,10 @@ export const categories = pgTable(
     };
   },
 );
+
+export const recordsRelations = relations(records, ({ one }) => ({
+  category: one(categories, {
+    fields: [records.categoryId],
+    references: [categories.id],
+  }),
+}));
