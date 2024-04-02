@@ -16,6 +16,29 @@ const commonLoggingOptions: PinoLoggerOptions = {
       return object;
     },
   },
+  serializers: {
+    res(reply) {
+      if (typeof reply !== 'object' || reply === null) return { statusCode: reply.statusCode };
+      if (
+        !('request' in reply) ||
+        typeof reply.request !== 'object' ||
+        !('raw' in reply.request) ||
+        typeof reply.request.raw !== 'object' ||
+        reply.request.raw === null
+      )
+        return { statusCode: reply.statusCode };
+      if (!('method' in reply.request.raw) || typeof reply.request.raw.method !== 'string')
+        return { statusCode: reply.statusCode };
+      if (!('url' in reply.request.raw) || typeof reply.request.raw.url !== 'string')
+        return { statusCode: reply.statusCode };
+
+      return {
+        method: reply.request.raw.method,
+        url: reply.request.raw.url,
+        statusCode: reply.statusCode,
+      };
+    },
+  },
 };
 
 const app = fastify({
