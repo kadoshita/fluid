@@ -40,7 +40,6 @@ const commonLoggingOptions: PinoLoggerOptions = {
     },
   },
 };
-//
 
 const app = fastify({
   logger:
