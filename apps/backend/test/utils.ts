@@ -10,3 +10,9 @@ export const fetchRecordById = async (id: string) => {
     where: (records, { eq }) => eq(records.id, id),
   });
 };
+
+export const fetchCategoryByName = async (name: string) => {
+  return await db.query.categories.findFirst({
+    where: (categories, { eq }) => eq(categories.name, name),
+  });
+};
