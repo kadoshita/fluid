@@ -1,6 +1,7 @@
 import fastify from 'fastify';
 import { registerRoutes } from '../../src/routes';
-import { cleanupTables, fetchRecordById } from '../utils';
+import { cleanupTables, createRecordFakeData, fetchRecordById } from '../utils';
+import { Record } from '../../src/models/record';
 
 const app = fastify({ logger: true });
 registerRoutes(app);
@@ -11,16 +12,17 @@ describe('record', () => {
   });
 
   test('recordが作られる', async () => {
+    const { title, description, comment, domain, path, categoryName, image } = createRecordFakeData();
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/records',
       payload: {
-        title: 'test1',
-        description: 'test1',
-        comment: 'test1',
-        url: 'https://example.com/1',
-        category: 'test1',
-        image: 'https://example.com/image.jpg',
+        title,
+        description,
+        comment,
+        url: `https://${domain}/${path}`,
+        category: categoryName,
+        image,
       },
     });
 
@@ -32,26 +34,27 @@ describe('record', () => {
       accountId: expect.any(String),
       addedAt: expect.any(Date),
       categoryId: expect.any(String),
-      description: 'test1',
-      comment: 'test1',
-      domain: 'example.com',
+      description,
+      comment,
+      domain,
       id: body.id,
-      image: 'https://example.com/image.jpg',
-      title: 'test1',
-      url: 'https://example.com/1',
+      image,
+      title,
+      url: `https://${domain}/${path}`,
     });
   });
 
   test('imageがない場合でもrecordが作られる', async () => {
+    const { title, description, comment, domain, path, categoryName } = createRecordFakeData();
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/records',
       payload: {
-        title: 'test no image',
-        description: 'test1',
-        comment: 'test1',
-        url: 'https://example.com/2',
-        category: 'test1',
+        title,
+        description,
+        comment,
+        url: `https://${domain}/${path}`,
+        category: categoryName,
       },
     });
 
@@ -63,27 +66,87 @@ describe('record', () => {
       accountId: expect.any(String),
       addedAt: expect.any(Date),
       categoryId: expect.any(String),
-      description: 'test1',
-      comment: 'test1',
-      domain: 'example.com',
+      description,
+      comment,
+      domain,
       id: body.id,
       image: null,
-      title: 'test no image',
-      url: 'https://example.com/2',
+      title,
+      url: `https://${domain}/${path}`,
     });
   });
 
-  test('パラメーターが不足している場合に400エラーが返る', async () => {
+  test.each([
+    [
+      'title',
+      () => {
+        const { description, comment, domain, path, categoryName, image } = createRecordFakeData();
+        return {
+          description,
+          comment,
+          url: `https://${domain}/${path}`,
+          category: categoryName,
+          image,
+        };
+      },
+    ],
+    [
+      'url',
+      () => {
+        const { title, description, comment, categoryName, image } = createRecordFakeData();
+        return {
+          title,
+          description,
+          comment,
+          category: categoryName,
+          image,
+        };
+      },
+    ],
+    [
+      'category',
+      () => {
+        const { title, description, comment, domain, path, image } = createRecordFakeData();
+        return {
+          title,
+          description,
+          comment,
+          url: `https://${domain}/${path}`,
+          image,
+        };
+      },
+    ],
+    [
+      'comment',
+      () => {
+        const { title, description, domain, path, categoryName, image } = createRecordFakeData();
+        return {
+          title,
+          description,
+          url: `https://${domain}/${path}`,
+          category: categoryName,
+          image,
+        };
+      },
+    ],
+    [
+      'description',
+      () => {
+        const { title, comment, domain, path, categoryName, image } = createRecordFakeData();
+        return {
+          title,
+          comment,
+          url: `https://${domain}/${path}`,
+          category: categoryName,
+          image,
+        };
+      },
+    ],
+  ])(`%sがない場合に400エラーが返る`, async (key, payload) => {
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/records',
-      payload: {
-        description: 'test1',
-        comment: 'test1',
-        url: 'https://example.com',
-        category: 'test1',
-        image: 'https://example.com/image.jpg',
-      },
+      payload: payload(),
     });
 
     expect(res.statusCode).toEqual(400);
@@ -91,22 +154,25 @@ describe('record', () => {
     expect(body).toStrictEqual({
       code: 'FST_ERR_VALIDATION',
       error: 'Bad Request',
-      message: "body must have required property 'title'",
+      message: `body must have required property '${key}'`,
       statusCode: 400,
     });
   });
 
   test('同じURLのrecordが既に存在する場合に409エラーが返る', async () => {
+    const { title, description, comment, domain, path, categoryName, image } = createRecordFakeData();
+    await Record.Create(title, description, comment, `https://${domain}/${path}`, categoryName, image);
+
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/records',
       payload: {
-        title: 'test1',
-        description: 'test1',
-        comment: 'test1',
-        url: 'https://example.com/1',
-        category: 'test1',
-        image: 'https://example.com/image.jpg',
+        title,
+        description,
+        comment,
+        url: `https://${domain}/${path}`,
+        category: categoryName,
+        image,
       },
     });
 

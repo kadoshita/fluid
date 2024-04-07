@@ -1,6 +1,6 @@
 import fastify from 'fastify';
 import { registerRoutes } from '../../src/routes';
-import { cleanupTables } from '../utils';
+import { cleanupTables, createRecordFakeData } from '../utils';
 import { Record } from '../../src/models/record';
 import { randomUUID } from 'crypto';
 
@@ -9,19 +9,21 @@ registerRoutes(app);
 
 describe('record', () => {
   let record: Record;
+  let fakeData: ReturnType<typeof createRecordFakeData>;
 
   beforeAll(async () => {
     await cleanupTables();
   });
 
   beforeEach(async () => {
+    fakeData = createRecordFakeData();
     record = await Record.Create(
-      'test2',
-      'test2',
-      'test2',
-      'https://example.com/11',
-      'test2',
-      'https://example.com/image.jpg',
+      fakeData.title,
+      fakeData.description,
+      fakeData.comment,
+      `https://${fakeData.domain}/${fakeData.path}`,
+      fakeData.categoryName,
+      fakeData.image,
     );
   });
 
@@ -37,20 +39,21 @@ describe('record', () => {
 
     expect(res.statusCode).toEqual(200);
     const body = JSON.parse(res.body);
+    const { title, description, domain, path, categoryName, image, comment } = fakeData;
     expect(body).toStrictEqual({
       accountId: expect.any(String),
       addedAt: expect.any(String),
       categoryId: expect.any(String),
       category: {
-        name: 'test2',
+        name: categoryName,
       },
-      description: 'test2',
-      comment: 'test2',
-      domain: 'example.com',
+      description,
+      comment,
+      domain,
       id: record.id,
-      image: 'https://example.com/image.jpg',
-      title: 'test2',
-      url: 'https://example.com/11',
+      image,
+      title,
+      url: `https://${domain}/${path}`,
     });
   });
 

@@ -1,5 +1,6 @@
-import { Record } from '../../src/models/record';
-import { cleanupTables, fetchCategoryByName, fetchRecordById } from '../utils';
+import { faker } from '@faker-js/faker';
+import { Record, RecordAlreadyExistsError } from '../../src/models/record';
+import { cleanupTables, createRecordFakeData, fetchCategoryByName, fetchRecordById } from '../utils';
 
 describe('record', () => {
   beforeAll(async () => {
@@ -8,42 +9,37 @@ describe('record', () => {
 
   describe('Create', () => {
     test('recordが作られる', async () => {
-      const record = await Record.Create(
-        'test1',
-        'test1',
-        'test1',
-        'https://example.com/1',
-        'test1',
-        'https://example.com/image.jpg',
-      );
+      const { title, description, comment, domain, path, categoryName, image } = createRecordFakeData();
+      const record = await Record.Create(title, description, comment, `https://${domain}/${path}`, categoryName, image);
       expect(record).toMatchObject({
         accountId: expect.any(String),
         addedAt: expect.any(Date),
         categoryId: expect.any(String),
-        description: 'test1',
-        domain: 'example.com',
+        description,
+        domain,
         id: expect.any(String),
-        image: 'https://example.com/image.jpg',
-        title: 'test1',
-        url: 'https://example.com/1',
-        comment: 'test1',
+        image,
+        title,
+        url: `https://${domain}/${path}`,
+        comment,
       });
 
       await expect(fetchRecordById(record.id)).resolves.toMatchObject(record);
     });
 
     test('imageがないrecordが作られる', async () => {
-      const record = await Record.Create('test2', 'test2', 'test2', 'https://example.com/2', 'test2');
+      const { title, description, comment, domain, path, categoryName } = createRecordFakeData();
+      const record = await Record.Create(title, description, comment, `https://${domain}/${path}`, categoryName);
       expect(record).toMatchObject({
         accountId: expect.any(String),
         addedAt: expect.any(Date),
         categoryId: expect.any(String),
-        description: 'test2',
-        domain: 'example.com',
+        description,
+        domain,
         id: expect.any(String),
-        title: 'test2',
-        url: 'https://example.com/2',
-        comment: 'test2',
+        title,
+        url: `https://${domain}/${path}`,
+        comment,
       });
 
       await expect(fetchRecordById(record.id)).resolves.toMatchObject({ ...record, image: null });
@@ -51,23 +47,25 @@ describe('record', () => {
 
     // TODO: categoryを作る際にrecordのaccountIdが入るようにする
     test.todo('対応するcategoryが無い場合に、enabled: falseでcategoryも作られる', async () => {
-      const record = await Record.Create('test3', 'test3', 'test3', 'https://example.com/3', 'test3');
+      const { title, description, comment, domain, path, categoryName, image } = createRecordFakeData();
+      const record = await Record.Create(title, description, comment, `https://${domain}/${path}`, categoryName, image);
       expect(record).toMatchObject({
         accountId: expect.any(String),
         addedAt: expect.any(Date),
         categoryId: expect.any(String),
-        description: 'test3',
-        domain: 'example.com',
+        description,
+        domain,
         id: expect.any(String),
-        title: 'test3',
-        url: 'https://example.com/3',
-        comment: 'test3',
+        title,
+        url: `https://${domain}/${path}`,
+        image,
+        comment,
       });
 
-      await expect(fetchRecordById(record.id)).resolves.toMatchObject({ ...record, image: null });
-      await expect(fetchCategoryByName('test3')).resolves.toStrictEqual({
+      await expect(fetchRecordById(record.id)).resolves.toMatchObject(record);
+      await expect(fetchCategoryByName(categoryName)).resolves.toStrictEqual({
         id: expect.any(String),
-        name: 'test3',
+        name: categoryName,
         addedAt: expect.any(Date),
         enabled: false,
         accountId: record.accountId,
@@ -75,94 +73,132 @@ describe('record', () => {
     });
 
     test('同じcategoryのrecordを複数作ることができる', async () => {
+      const {
+        title: title1,
+        description: description1,
+        comment: comment1,
+        domain: domain1,
+        path: path1,
+        categoryName,
+        image: image1,
+      } = createRecordFakeData();
+      const {
+        title: title2,
+        description: description2,
+        comment: comment2,
+        domain: domain2,
+        path: path2,
+        image: image2,
+      } = createRecordFakeData();
       const record1 = await Record.Create(
-        'test4',
-        'test4',
-        'test4',
-        'https://example.com/4',
-        'test4',
-        'https://example.com/image.jpg',
+        title1,
+        description1,
+        comment1,
+        `https://${domain1}/${path1}`,
+        categoryName,
+        image1,
       );
       const record2 = await Record.Create(
-        'test4',
-        'test4',
-        'test4',
-        'https://example.com/5',
-        'test4',
-        'https://example.com/image.jpg',
+        title2,
+        description2,
+        comment2,
+        `https://${domain2}/${path2}`,
+        categoryName,
+        image2,
       );
       expect(record1).toMatchObject({
         accountId: expect.any(String),
         addedAt: expect.any(Date),
         categoryId: expect.any(String),
-        description: 'test4',
-        domain: 'example.com',
+        description: description1,
+        domain: domain1,
         id: expect.any(String),
-        title: 'test4',
-        url: 'https://example.com/4',
-        image: 'https://example.com/image.jpg',
-        comment: 'test4',
+        title: title1,
+        url: `https://${domain1}/${path1}`,
+        image: image1,
+        comment: comment1,
       });
       expect(record2).toMatchObject({
         accountId: expect.any(String),
         addedAt: expect.any(Date),
         categoryId: expect.any(String),
-        description: 'test4',
-        domain: 'example.com',
+        description: description2,
+        domain: domain2,
         id: expect.any(String),
-        title: 'test4',
-        url: 'https://example.com/5',
-        image: 'https://example.com/image.jpg',
-        comment: 'test4',
+        title: title2,
+        url: `https://${domain2}/${path2}`,
+        image: image2,
+        comment: comment2,
       });
 
       await expect(fetchRecordById(record1.id)).resolves.toMatchObject(record1);
       await expect(fetchRecordById(record2.id)).resolves.toMatchObject(record2);
-      await expect(fetchCategoryByName('test4')).resolves.toMatchObject({ name: 'test4' });
+      await expect(fetchCategoryByName(categoryName)).resolves.toMatchObject({ name: categoryName });
     });
 
     test('URLのドメイン部を保存できる', async () => {
+      const { title, description, comment, path, categoryName } = createRecordFakeData();
       const record = await Record.Create(
-        'test5',
-        'test5',
-        'test5',
-        'https://ドメイン名例.jp/6',
-        'test5',
+        title,
+        description,
+        comment,
+        `https://ドメイン名例.jp/${path}`,
+        categoryName,
         'https://ドメイン名例.jp/image.jpg',
       );
       expect(record).toMatchObject({
         accountId: expect.any(String),
         addedAt: expect.any(Date),
         categoryId: expect.any(String),
-        description: 'test5',
+        description,
         domain: 'xn--eckwd4c7cu47r2wf.jp',
         id: expect.any(String),
-        title: 'test5',
-        url: 'https://ドメイン名例.jp/6',
+        title,
+        url: `https://ドメイン名例.jp/${path}`,
         image: 'https://ドメイン名例.jp/image.jpg',
-        comment: 'test5',
+        comment,
       });
 
       await expect(fetchRecordById(record.id)).resolves.toMatchObject(record);
     });
 
     test('同じURLのrecordを作ることはできない', async () => {
-      await expect(Record.Create('test5', 'test5', 'test5', 'https://example.com/6', 'test5')).resolves.toBeDefined();
-      await expect(Record.Create('test6', 'test6', 'test6', 'https://example.com/6', 'test6')).rejects.toThrow();
+      const {
+        title: title1,
+        description: description1,
+        comment: comment1,
+        domain,
+        path,
+        categoryName: categoryName1,
+      } = createRecordFakeData();
+      const {
+        title: title2,
+        description: description2,
+        comment: comment2,
+        categoryName: categoryName2,
+      } = createRecordFakeData();
+      await expect(
+        Record.Create(title1, description1, comment1, `https://${domain}/${path}`, categoryName1),
+      ).resolves.toBeDefined();
+      await expect(
+        Record.Create(title2, description2, comment2, `https://${domain}/${path}`, categoryName2),
+      ).rejects.toThrow(RecordAlreadyExistsError);
     });
   });
 
   describe('FindById', () => {
     let record: Record;
+    let fakeData: ReturnType<typeof createRecordFakeData>;
 
     beforeEach(async () => {
+      fakeData = createRecordFakeData();
       record = await Record.Create(
-        'test2',
-        'test2',
-        'test2',
-        'https://example.com/11',
-        'test2',
-        'https://example.com/image.jpg',
+        fakeData.title,
+        fakeData.description,
+        fakeData.comment,
+        `https://${fakeData.domain}/${fakeData.path}`,
+        fakeData.categoryName,
+        fakeData.image,
       );
     });
 
@@ -171,33 +207,36 @@ describe('record', () => {
     });
 
     test('recordが取得できる', async () => {
+      const { title, description, domain, path, categoryName, image } = fakeData;
       const foundRecord = await Record.FindById(record.id);
       expect(foundRecord).toMatchObject({
         accountId: expect.any(String),
         addedAt: expect.any(Date),
         categoryId: expect.any(String),
-        category: { name: 'test2' },
-        description: 'test2',
-        domain: 'example.com',
+        category: { name: categoryName },
+        description,
+        domain,
         id: record.id,
-        image: 'https://example.com/image.jpg',
-        title: 'test2',
-        url: 'https://example.com/11',
+        image,
+        title,
+        url: `https://${domain}/${path}`,
       });
     });
   });
 
   describe('delete', () => {
     let record: Record;
+    let fakeData: ReturnType<typeof createRecordFakeData>;
 
     beforeEach(async () => {
+      fakeData = createRecordFakeData();
       record = await Record.Create(
-        'test2',
-        'test2',
-        'test2',
-        'https://example.com/11',
-        'test2-1',
-        'https://example.com/image.jpg',
+        fakeData.title,
+        fakeData.description,
+        fakeData.comment,
+        `https://${fakeData.domain}/${fakeData.path}`,
+        fakeData.categoryName,
+        fakeData.image,
       );
     });
 
@@ -206,9 +245,15 @@ describe('record', () => {
     });
 
     test('recordのみが削除され、categoryは削除されない', async () => {
-      await record.delete();
+      await expect(record.delete()).resolves.toBeUndefined();
       await expect(fetchRecordById(record.id)).resolves.toBeUndefined();
-      await expect(fetchCategoryByName('test2-1')).resolves.toMatchObject({ name: 'test2-1' });
+      await expect(fetchCategoryByName(fakeData.categoryName)).resolves.toMatchObject({ name: fakeData.categoryName });
+    });
+
+    test('deleteを2回実行してもエラーにならない', async () => {
+      await expect(record.delete()).resolves.toBeUndefined();
+      await expect(record.delete()).resolves.toBeUndefined();
+      await expect(fetchRecordById(record.id)).resolves.toBeUndefined();
     });
   });
 });
