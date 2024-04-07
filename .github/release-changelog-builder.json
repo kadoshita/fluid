@@ -1,0 +1,25 @@
+{
+  "categories": [
+    {
+      "title": "## Update",
+      "labels": [
+        "${{ steps.get_package_name_and_version.outputs.PACKAGE_NAME }}"
+      ]
+    }
+  ],
+  "ignore_labels": [
+    "release"
+  ],
+  "tag_resolver": {
+    "method": "semver",
+    "filter": {
+      "pattern": "${{ steps.get_package_name_and_version.outputs.PACKAGE_NAME }}@(.+)",
+      "flags": "gu"
+    },
+    "transformer": {
+      "pattern": "${{ steps.get_package_name_and_version.outputs.PACKAGE_NAME }}@(.+)",
+      "flags": "gu",
+      "target": "$1"
+    }
+  }
+}
