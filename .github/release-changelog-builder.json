@@ -2,14 +2,10 @@
   "categories": [
     {
       "title": "## Update",
-      "labels": [
-        "${{ steps.get_package_name_and_version.outputs.PACKAGE_NAME }}"
-      ]
+      "labels": ["${{ steps.get_package_name_and_version.outputs.PACKAGE_NAME }}"]
     }
   ],
-  "ignore_labels": [
-    "release"
-  ],
+  "ignore_labels": ["release"],
   "tag_resolver": {
     "method": "semver",
     "filter": {
