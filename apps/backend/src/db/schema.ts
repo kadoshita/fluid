@@ -7,6 +7,7 @@ export const records = pgTable(
     id: uuid('id').primaryKey(),
     title: text('title').notNull(),
     description: text('description'),
+    comment: text('comment'),
     url: text('url').notNull().unique(),
     domain: text('domain').notNull(),
     categoryId: uuid('category_id')
