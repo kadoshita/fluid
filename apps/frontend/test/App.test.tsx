@@ -5,7 +5,7 @@ describe('App', () => {
   it('should render', async () => {
     render(<App />);
     await waitFor(() => {
-      expect(screen.getByText('App')).toBeInTheDocument();
+      expect(screen.getByText('Index')).toBeInTheDocument();
     });
   });
 });
