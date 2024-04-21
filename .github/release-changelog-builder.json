@@ -9,11 +9,11 @@
   "tag_resolver": {
     "method": "semver",
     "filter": {
-      "pattern": "${{ steps.get_package_name_and_version.outputs.PACKAGE_NAME }}@(.+)",
+      "pattern": "${{ steps.get_package_name_and_version.outputs.PACKAGE_NAME }}@v(.+)",
       "flags": "gu"
     },
     "transformer": {
-      "pattern": "${{ steps.get_package_name_and_version.outputs.PACKAGE_NAME }}@(.+)",
+      "pattern": "${{ steps.get_package_name_and_version.outputs.PACKAGE_NAME }}@v(.+)",
       "flags": "gu",
       "target": "$1"
     }
