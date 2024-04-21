@@ -32,8 +32,28 @@ jobs:
         uses: mikepenz/release-changelog-builder-action@v4
         with:
           toTag: ${{ github.event.pull_request.base.sha }}
-          configuration: ./.github/release-changelog-builder.json
-          ignorePreReleases: true
+          configurationJson: |
+            {
+              "categories": [
+                {
+                  "title": "## Update",
+                  "labels": ["${{ steps.get_package_name_and_version.outputs.PACKAGE_NAME }}"]
+                }
+              ],
+              "ignore_labels": ["release"],
+              "tag_resolver": {
+                "method": "semver",
+                "filter": {
+                  "pattern": "${{ steps.get_package_name_and_version.outputs.PACKAGE_NAME }}@v(.+)",
+                  "flags": "gu"
+                },
+                "transformer": {
+                  "pattern": "${{ steps.get_package_name_and_version.outputs.PACKAGE_NAME }}@v(.+)",
+                  "flags": "gu",
+                  "target": "$1"
+                }
+              }
+            }
       - name: Add comment
         uses: actions/github-script@v7
         with:
