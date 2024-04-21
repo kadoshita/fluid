@@ -15,6 +15,7 @@ jobs:
       version: ${{ steps.output.outputs.version }}
     permissions:
       contents: write
+      issues: write
     steps:
       - name: Get package name and version
         id: get_package_name_and_version

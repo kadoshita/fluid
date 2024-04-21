@@ -44,7 +44,7 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_TOKEN_FOR_PR }}
           branch: release/${{ github.event.inputs.target_package }}/${{ github.event.inputs.release_version }}
           base: ${{ github.ref_name }}
           delete-branch: true
