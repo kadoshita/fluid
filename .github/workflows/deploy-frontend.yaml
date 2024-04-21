@@ -20,6 +20,7 @@ on:
 jobs:
   test:
     uses: ./.github/workflows/test-frontend.yaml
+    secrets: inherit
 
   deploy:
     runs-on: ubuntu-latest
