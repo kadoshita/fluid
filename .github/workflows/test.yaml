@@ -50,6 +50,7 @@ jobs:
     needs: check-changes
     if: ${{ needs.check-changes.outputs.frontend == 'true' || github.event_name == 'workflow_call' }}
     uses: ./.github/workflows/test-frontend.yaml
+    secrets: inherit
 
   test-extension:
     needs: check-changes
