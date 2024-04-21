@@ -2,9 +2,12 @@ import { Group, Button, Box, ActionIcon } from '@mantine/core';
 import classes from './index.module.css';
 import { Link, useLocation } from 'wouter';
 import { IconBrandBluesky, IconBrandGithub, IconBrandMastodon, IconBrandTwitter } from '@tabler/icons-react';
+import { useSession } from '../../hooks/useSession';
 
 export function Header() {
   const [location, setLocation] = useLocation();
+  const [session] = useSession();
+
   return (
     <Box>
       <header className={classes.header}>
@@ -59,10 +62,18 @@ export function Header() {
             >
               <IconBrandGithub></IconBrandGithub>
             </ActionIcon>
-            <Button variant="default" onClick={() => setLocation('/login')}>
-              Log in
-            </Button>
-            <Button onClick={() => setLocation('/signup')}>Sign up</Button>
+            {session ? (
+              <Button variant="light" color='red' onClick={() => setLocation('/logout')}>
+                Log out
+              </Button>
+            ) : (
+              <>
+                <Button variant="default" onClick={() => setLocation('/login')}>
+                  Log in
+                </Button>
+                <Button onClick={() => setLocation('/signup')}>Sign up</Button>
+              </>
+            )}
           </Group>
         </Group>
       </header>
