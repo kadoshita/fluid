@@ -54,4 +54,3 @@ jobs:
           author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
           commit-message: 'Update version to ${{ github.event.inputs.release_version }}'
           labels: prepare-release
-          reviewers: ${{ github.actor }}
