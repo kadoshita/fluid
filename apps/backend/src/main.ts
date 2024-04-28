@@ -1,4 +1,5 @@
 import fastify from 'fastify';
+import cors from '@fastify/cors';
 import { registerRoutes } from './routes';
 import { PinoLoggerOptions } from 'fastify/types/logger';
 
@@ -50,6 +51,9 @@ const app = fastify({
         }
       : commonLoggingOptions,
   trustProxy: '127.0.0.1',
+});
+app.register(cors, {
+  origin: true,
 });
 
 registerRoutes(app);
