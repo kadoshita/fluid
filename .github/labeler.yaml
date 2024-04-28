@@ -2,22 +2,16 @@ backend:
   - changed-files:
       - any-glob-to-any-file:
           - 'apps/backend/**'
-          - 'package.json'
-          - 'package-lock.json'
 
 frontend:
   - changed-files:
       - any-glob-to-any-file:
           - 'apps/frontend/**'
-          - 'package.json'
-          - 'package-lock.json'
 
 extension:
   - changed-files:
       - any-glob-to-any-file:
           - 'extensions/**'
-          - 'package.json'
-          - 'package-lock.json'
 
 release:
   - head-branch: ['^release', 'release']
