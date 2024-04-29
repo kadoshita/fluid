@@ -5,6 +5,7 @@
   "main": "dist/main.js",
   "devDependencies": {
     "@playwright/test": "^1.43.1",
+    "@types/chrome": "^0.0.267",
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.2.1",
@@ -20,6 +21,8 @@
   "author": "sublimer <sublimer.me@gmail.com> (https://sublimer.me/)",
   "license": "MIT",
   "dependencies": {
+    "@mantine/core": "^7.8.1",
+    "@mantine/form": "^7.8.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   }

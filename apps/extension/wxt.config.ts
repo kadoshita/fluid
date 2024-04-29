@@ -14,6 +14,8 @@ export default defineConfig({
       192: '/icon192.png',
       512: '/icon512.png',
     },
+    permissions: ['storage', 'activeTab', 'scripting', 'webRequest'],
+    host_permissions: ['http://*/*', 'https://*/*'],
   },
   vite: () => ({
     plugins: [react()],
