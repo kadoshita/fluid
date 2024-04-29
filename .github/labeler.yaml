@@ -11,7 +11,7 @@ frontend:
 extension:
   - changed-files:
       - any-glob-to-any-file:
-          - 'extensions/**'
+          - 'apps/extension/**'
 
 release:
   - head-branch: ['^release', 'release']
