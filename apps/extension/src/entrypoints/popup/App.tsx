@@ -61,7 +61,22 @@ function App() {
     })();
   }, []);
 
-  const handleSubmit = (values: { provider: Provider }) => {
+  const handleSubmitForm = (values: Record) => {
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/records`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(values),
+    }).then((res) => {
+      if (res.ok) {
+        window.close();
+      }
+    });
+  };
+
+  const handleSubmitSigninForm = (values: { provider: Provider }) => {
     switch (values.provider) {
       case 'github':
       case 'google':
@@ -74,7 +89,7 @@ function App() {
     <MantineProvider>
       {accessToken ? (
         <Box maw={340} mx="auto">
-          <form onSubmit={form.onSubmit((values) => console.log(values))}>
+          <form onSubmit={form.onSubmit(handleSubmitForm)}>
             <TextInput
               withAsterisk
               required
@@ -97,10 +112,10 @@ function App() {
               withAsterisk
               required
               label="Category"
-              placeholder="categoy"
+              placeholder="category"
               radius="sm"
-              key={form.key('categoy')}
-              {...form.getInputProps('categoy')}
+              key={form.key('category')}
+              {...form.getInputProps('category')}
             />
             <Textarea
               label="Description"
@@ -130,7 +145,7 @@ function App() {
           </form>
         </Box>
       ) : (
-        <SignupOauthForm handleSubmit={handleSubmit} />
+        <SignupOauthForm handleSubmit={handleSubmitSigninForm} />
       )}
     </MantineProvider>
   );
