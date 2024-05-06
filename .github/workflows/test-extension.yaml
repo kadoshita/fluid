@@ -6,6 +6,12 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_API_KEY: ${{ secrets.VITE_SUPABASE_API_KEY }}
+      VITE_API_BASE_URL: http://localhost:3000
+      VITE_FLUID_URL: https://example.com
+
 
     steps:
       - name: Checkout repository
@@ -23,24 +29,5 @@ jobs:
       - name: Build
         run: npm run build -w apps/extension
 
-      - name: Install Browser
-        run: npx playwright install chromium --with-deps
-
       - name: Run tests
-        run: xvfb-run npm test -w apps/extension
-
-      - name: Upload playwright report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: playwright-report
-          path: apps/extension/playwright-report/
-          retention-days: 30
-
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: test-results
-          path: apps/extension/test-results/
-          retention-days: 30
+        run: npm test -w apps/extension

@@ -56,3 +56,4 @@ jobs:
     needs: check-changes
     if: ${{ needs.check-changes.outputs.extension == 'true' || github.event_name == 'workflow_call' }}
     uses: ./.github/workflows/test-extension.yaml
+    secrets: inherit
