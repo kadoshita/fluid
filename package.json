@@ -15,7 +15,7 @@
     "apps/extension"
   ],
   "devDependencies": {
-    "@types/node": "^20.12.7",
+    "@types/node": "^20.12.9",
     "prettier": "^3.2.5",
     "typescript": "^5.4.5"
   }
