@@ -7,9 +7,9 @@
     "dev": "ts-node-dev --respawn --transpile-only -r dotenv/config -r ./src/opentelemetry.ts src/main.ts dotenv_config_path=.env.local",
     "build": "tsc -p tsconfig.build.json",
     "test": "vitest",
-    "db:generate": "drizzle-kit generate:pg",
-    "db:push": "drizzle-kit push:pg",
-    "db:push:production": "NODE_ENV=production drizzle-kit push:pg",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push",
+    "db:push:production": "NODE_ENV=production drizzle-kit push",
     "postgres:start": "docker run --rm -d --name postgres -p 5432:5432 -v $(pwd)/postgres:/var/lib/postgres -e POSTGRES_PASSWORD=postgres postgres:15.5",
     "postgres:stop": "docker stop postgres"
   },
