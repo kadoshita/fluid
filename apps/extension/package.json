@@ -4,14 +4,14 @@
   "description": "",
   "main": "dist/main.js",
   "devDependencies": {
-    "@testing-library/jest-dom": "^6.4.5",
-    "@testing-library/react": "^15.0.7",
+    "@testing-library/jest-dom": "^6.4.6",
+    "@testing-library/react": "^16.0.0",
     "@types/chrome": "^0.0.268",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
-    "@vitejs/plugin-react": "^4.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
     "vitest": "^1.6.0",
-    "wxt": "^0.18.3"
+    "wxt": "^0.18.9"
   },
   "scripts": {
     "dev": "wxt",
