@@ -23,9 +23,9 @@
   "author": "sublimer <sublimer.me@gmail.com> (https://sublimer.me/)",
   "license": "MIT",
   "dependencies": {
-    "@mantine/core": "^7.9.0",
-    "@mantine/form": "^7.9.0",
-    "@supabase/supabase-js": "^2.43.1",
+    "@mantine/core": "^7.13.4",
+    "@mantine/form": "^7.13.4",
+    "@supabase/supabase-js": "^2.45.6",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   }

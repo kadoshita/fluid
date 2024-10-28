@@ -17,18 +17,18 @@
   "license": "MIT",
   "dependencies": {
     "@fastify/cors": "^9.0.1",
-    "@google-cloud/opentelemetry-cloud-monitoring-exporter": "^0.17.0",
-    "@google-cloud/opentelemetry-cloud-trace-exporter": "^2.1.0",
-    "@opentelemetry/api": "^1.8.0",
-    "@opentelemetry/auto-instrumentations-node": "^0.46.0",
-    "@opentelemetry/exporter-metrics-otlp-grpc": "^0.51.0",
+    "@google-cloud/opentelemetry-cloud-monitoring-exporter": "^0.20.0",
+    "@google-cloud/opentelemetry-cloud-trace-exporter": "^2.4.1",
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.52.0",
+    "@opentelemetry/exporter-metrics-otlp-grpc": "^0.54.0",
     "@opentelemetry/exporter-trace-otlp-grpc": "^0.51.0",
     "@opentelemetry/sdk-metrics": "^1.22.0",
     "@opentelemetry/sdk-trace-base": "^1.22.0",
-    "@supabase/supabase-js": "^2.43.1",
-    "drizzle-orm": "^0.30.10",
+    "@supabase/supabase-js": "^2.45.6",
+    "drizzle-orm": "^0.35.3",
     "fastify": "^4.26.2",
-    "postgres": "^3.4.4"
+    "postgres": "^3.4.5"
   },
   "devDependencies": {
     "@faker-js/faker": "^8.4.1",
