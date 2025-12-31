@@ -38,7 +38,7 @@ jobs:
 
       - name: Wait for MongoDB to be ready
         run: |
-          until mongosh --host localhost:27017 --eval "db.adminCommand('ping')" > /dev/null 2>&1; do
+          until nc -z localhost 27017; do
             echo "Waiting for MongoDB..."
             sleep 2
           done
@@ -92,6 +92,9 @@ jobs:
       - name: Install dependencies
         run: npm i
 
+      - name: Run Biome
+        run: npm run lint
+
       - name: Check TypeScript compilation
         run: npx tsc --noEmit
 
@@ -120,11 +123,11 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm i
 
       - name: Wait for MongoDB to be ready
         run: |
-          until mongosh --host localhost:27017 --eval "db.adminCommand('ping')" > /dev/null 2>&1; do
+          until nc -z localhost 27017; do
             echo "Waiting for MongoDB..."
             sleep 2
           done
