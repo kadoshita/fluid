@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import RSS from 'rss';
 import { DisplayPostData } from '../../../../@types/PostData';
-import { connectToDatabase } from '../../../../db';
+import { PostService } from '../../../../lib/services';
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
     try {
@@ -16,21 +16,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
             ttl: 60,
         });
 
-        const { db } = await connectToDatabase();
-        const now = new Date();
-        const before24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-
-        const latest24hPosts = await db
-            .collection<DisplayPostData>('posts')
-            .find({
-                added_at: {
-                    $gte: before24h,
-                    $lt: now,
-                },
-                category: category,
-            })
-            .sort({ added_at: -1 })
-            .toArray();
+        const latest24hPosts = await PostService.getLatest24hPostsByCategory(category as string);
 
         latest24hPosts.forEach((post) => {
             feed.item({

@@ -1,6 +1,6 @@
 import { connectToDatabase } from '../../db';
 import { DisplayPostData, InsertPostData } from '../../@types/PostData';
-import { Filter } from 'mongodb';
+import { Filter, ObjectId } from 'mongodb';
 
 export class PostService {
     /**
@@ -107,10 +107,40 @@ export class PostService {
      */
     static async getPostById(id: string): Promise<DisplayPostData | null> {
         const { db } = await connectToDatabase();
-        const { ObjectId } = require('mongodb');
+
+        const result = await db
+            .collection('posts')
+            .findOne({ _id: new ObjectId(id) });
+
+        return result as unknown as DisplayPostData | null;
+    }
+
+    /**
+     * Get latest 24 hours posts by category
+     */
+    static async getLatest24hPostsByCategory(category: string): Promise<DisplayPostData[]> {
+        const { db } = await connectToDatabase();
+        const now = new Date();
+        const before24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
         return await db
             .collection<DisplayPostData>('posts')
-            .findOne({ _id: new ObjectId(id) });
+            .find({
+                added_at: {
+                    $gte: before24h,
+                    $lt: now,
+                },
+                category: category,
+            })
+            .sort({ added_at: -1 })
+            .toArray();
+    }
+
+    /**
+     * Get total count of posts for health check
+     */
+    static async getPostCount(): Promise<number> {
+        const { db } = await connectToDatabase();
+        return await db.collection('posts').countDocuments();
     }
 }
