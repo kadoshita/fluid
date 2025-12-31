@@ -26,6 +26,7 @@ const Header = (props: HeaderProps) => {
             <meta name="twitter:description" content={props.description} />
             <meta name="twitter:image" content='https://fluid.sublimer.me/logo.png' />
             <link rel="canonical" href={props.url} />
+            <link rel="alternate" type="application/rss+xml" title="RSS" href="https://fluid.sublimer.me/api/feed" />
         </>
     )
 };
