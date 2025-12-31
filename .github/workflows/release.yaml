@@ -10,8 +10,12 @@ env:
   REGISTRY: ghcr.io
 
 jobs:
+  test:
+    uses: ./.github/workflows/test.yaml
+
   build-image:
     runs-on: ubuntu-latest
+    needs: test
     permissions:
       contents: read
       packages: write

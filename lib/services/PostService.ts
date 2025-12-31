@@ -2,6 +2,13 @@ import { connectToDatabase } from '../../db';
 import { DisplayPostData, InsertPostData } from '../../@types/PostData';
 import { Filter, ObjectId } from 'mongodb';
 
+/**
+ * Escape special characters in a string for use in a regular expression
+ */
+function escapeRegExp(string: string): string {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 export class PostService {
     /**
      * Get latest 24 hours posts
@@ -50,27 +57,39 @@ export class PostService {
     static async searchPosts(keyword: string, category: string, url: string): Promise<DisplayPostData[]> {
         const { db } = await connectToDatabase();
 
-        const keywordList = keyword.split(/\s+/);
-        const keywordQueries: Filter<DisplayPostData>[] = keywordList.map((word) => {
-            const keywordRegexp = new RegExp(word, 'i');
-            return {
-                title: {
-                    $regex: keywordRegexp,
-                },
-                description: {
-                    $regex: keywordRegexp,
-                },
-            };
-        });
+        const conditions: Filter<DisplayPostData>[] = [];
 
-        const urlRegexp = new RegExp(url, 'i');
-        const findQuery: Filter<DisplayPostData> = {
-            $and: [
-                ...keywordQueries,
-                category === '' ? {} : { category: category },
-                url === '' ? {} : { url: urlRegexp },
-            ],
-        };
+        // Add keyword conditions (title OR description matches)
+        if (keyword && keyword.trim() !== '') {
+            const keywordList = keyword.split(/\s+/).filter(word => word.length > 0);
+            const keywordQueries: Filter<DisplayPostData>[] = keywordList.map((word) => {
+                const escapedWord = escapeRegExp(word);
+                const keywordRegexp = new RegExp(escapedWord, 'i');
+                return {
+                    $or: [
+                        { title: { $regex: keywordRegexp } },
+                        { description: { $regex: keywordRegexp } },
+                    ],
+                };
+            });
+            conditions.push(...keywordQueries);
+        }
+
+        // Add category condition
+        if (category && category !== '') {
+            conditions.push({ category: category });
+        }
+
+        // Add URL condition
+        if (url && url !== '') {
+            const escapedUrl = escapeRegExp(url);
+            const urlRegexp = new RegExp(escapedUrl, 'i');
+            conditions.push({ url: urlRegexp });
+        }
+
+        const findQuery: Filter<DisplayPostData> = conditions.length > 0 
+            ? { $and: conditions }
+            : {};
 
         return await db
             .collection<DisplayPostData>('posts')

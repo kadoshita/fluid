@@ -1,0 +1,174 @@
+name: Test
+
+on:
+  push:
+  workflow_call:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:8.2.3
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    strategy:
+      matrix:
+        node-version: [22.x, 24.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Wait for MongoDB to be ready
+        run: |
+          until mongosh --host localhost:27017 --eval "db.adminCommand('ping')" > /dev/null 2>&1; do
+            echo "Waiting for MongoDB..."
+            sleep 2
+          done
+          echo "MongoDB is ready"
+
+      - name: Initialize test database
+        run: |
+          mongosh --host localhost:27017 --eval "
+            use fluid_test;
+            db.dropDatabase();
+            print('Test database initialized');
+          "
+
+      - name: Run tests
+        run: npm run test:run
+        env:
+          NODE_ENV: test
+          TZ: Asia/Tokyo
+          MONGODB_URI: mongodb://localhost:27017
+          MONGODB_DB: fluid_test
+
+      - name: Generate coverage report
+        run: npm run test:coverage
+        env:
+          NODE_ENV: test
+          TZ: Asia/Tokyo
+          MONGODB_URI: mongodb://localhost:27017
+          MONGODB_DB: fluid_test
+
+      - name: Archive coverage artifacts
+        uses: actions/upload-artifact@v4
+        if: matrix.node-version == '24.x'
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7
+
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check TypeScript compilation
+        run: npx tsc --noEmit
+
+  e2e:
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:8.2.3
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Wait for MongoDB to be ready
+        run: |
+          until mongosh --host localhost:27017 --eval "db.adminCommand('ping')" > /dev/null 2>&1; do
+            echo "Waiting for MongoDB..."
+            sleep 2
+          done
+          echo "MongoDB is ready"
+
+      - name: Initialize test database
+        run: |
+          mongosh --host localhost:27017 --eval "
+            use fluid_test;
+            db.dropDatabase();
+            print('Test database initialized');
+          "
+
+      - name: Build Next.js application
+        run: npm run build
+        env:
+          NODE_ENV: production
+          TZ: Asia/Tokyo
+          MONGODB_URI: mongodb://localhost:27017
+          MONGODB_DB: fluid_test
+
+      - name: Start server in background
+        run: npm run start &
+        env:
+          NODE_ENV: test
+          TZ: Asia/Tokyo
+          MONGODB_URI: mongodb://localhost:27017
+          MONGODB_DB: fluid_test
+          API_TOKEN: token
+          PORT: 3000
+
+      - name: Wait for server to be ready
+        run: |
+          timeout 60 bash -c 'until curl -f http://localhost:3000/api/health > /dev/null 2>&1; do
+            echo "Waiting for server..."
+            sleep 2
+          done'
+          echo "Server is ready"
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+        env:
+          NODE_ENV: test
+          TZ: Asia/Tokyo
+          MONGODB_URI: mongodb://localhost:27017
+          MONGODB_DB: fluid_test
+          API_TOKEN: token
