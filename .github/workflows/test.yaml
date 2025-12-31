@@ -34,7 +34,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm i
 
       - name: Wait for MongoDB to be ready
         run: |
@@ -90,7 +90,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm i
 
       - name: Check TypeScript compilation
         run: npx tsc --noEmit
