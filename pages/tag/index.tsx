@@ -1,17 +1,14 @@
 import React from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
-import absoluteUrl from 'next-absolute-url';
 import { Container, Row, Col } from 'react-bootstrap';
 import MyNavbar from '../../components/common/Navbar';
 import Header from '../../components/common/Header';
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
+import { TagService } from '../../lib/services';
 
-export const getServerSideProps: GetServerSideProps = async ({ req }) => {
-    const { protocol, host } = absoluteUrl(req, 'localhost:3000');
-    const apiBaseURL = `${protocol}//${host}`;
-    const res = await fetch(`${apiBaseURL}/api/tag`);
-    const tags: string[] = await res.json();
+export const getServerSideProps: GetServerSideProps = async () => {
+    const tags: string[] = await TagService.getAllTags();
     return {
         props: {
             tags

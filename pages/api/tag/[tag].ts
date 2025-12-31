@@ -1,28 +1,11 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { DisplayPostData } from '../../../@types/PostData';
-import { connectToDatabase } from '../../../db';
+import { TagService } from '../../../lib/services';
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
     try {
         const { tag } = req.query;
-        const { db } = await connectToDatabase();
-
-        const now = new Date();
-        const before7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-
-        const latest24hPosts = await db
-            .collection<DisplayPostData>('posts')
-            .find({
-                added_at: {
-                    $gte: before7d,
-                    $lt: now,
-                },
-                tag: {
-                    $in: [tag],
-                },
-            })
-            .sort({ added_at: -1 })
-            .toArray();
+        const latest24hPosts = await TagService.getLatest7dPostsByTag(tag as string);
 
         if (latest24hPosts) {
             return res.status(200).json(latest24hPosts);

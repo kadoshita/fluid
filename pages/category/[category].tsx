@@ -1,20 +1,18 @@
 import React from 'react';
 import { Col, Container, Row } from 'react-bootstrap';
 import Head from 'next/head';
-import absoluteUrl from 'next-absolute-url';
+
 import 'bootstrap/dist/css/bootstrap.min.css';
 import MyNavbar from '../../components/common/Navbar';
 import { ListTable } from '../../components/list';
 import { DisplayPostData } from '../../@types/PostData';
 import Header from '../../components/common/Header';
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
+import { PostService } from '../../lib/services';
 
-export const getServerSideProps: GetServerSideProps = async ({ query, req }) => {
-    const { protocol, host } = absoluteUrl(req, 'localhost:3000');
-    const apiBaseURL = `${protocol}//${host}`;
+export const getServerSideProps: GetServerSideProps = async ({ query }) => {
     const { category } = query;
-    const res = await fetch(`${apiBaseURL}/api/category/${category}`);
-    const categoryPostData: DisplayPostData[] = await res.json();
+    const categoryPostData: DisplayPostData[] = await PostService.getLatest7dPostsByCategory(category as string);
 
     return {
         props: { categoryPostData, category }

@@ -1,22 +1,27 @@
 import React from 'react';
 import Head from 'next/head';
-import absoluteUrl from 'next-absolute-url';
 import { Container, Row, Col, Card } from 'react-bootstrap';
 import { DisplayPostData } from '../../@types/PostData';
 import MyNavbar from '../../components/common/Navbar';
 import Link from 'next/link';
 import Header from '../../components/common/Header';
 import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
+import { PostService } from '../../lib/services';
 
-export const getServerSideProps: GetServerSideProps = async ({ params, req }) => {
-    const { protocol, host } = absoluteUrl(req, 'localhost:3000');
-    const apiBaseURL = `${protocol}//${host}`;
+export const getServerSideProps: GetServerSideProps = async ({ params }) => {
     const id = params.id;
-    if (!id) {
-        return;
+    if (!id || typeof id !== 'string') {
+        return {
+            notFound: true
+        };
     }
-    const res = await fetch(`${apiBaseURL}/api/post/${id}`);
-    const postData: DisplayPostData = await res.json();
+    const postData: DisplayPostData = await PostService.getPostById(id);
+
+    if (!postData) {
+        return {
+            notFound: true
+        };
+    }
 
     return {
         props: { postData, id }
