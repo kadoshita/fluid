@@ -23,7 +23,7 @@ export class PostService {
       .find({
         added_at: {
           $gte: before24h,
-          $lt: now,
+          $lte: now,
         },
       })
       .sort({ added_at: -1 })
@@ -43,7 +43,7 @@ export class PostService {
       .find({
         added_at: {
           $gte: before7d,
-          $lt: now,
+          $lte: now,
         },
         category: category,
       })
@@ -144,7 +144,7 @@ export class PostService {
       .find({
         added_at: {
           $gte: before24h,
-          $lt: now,
+          $lte: now,
         },
         category: category,
       })

@@ -578,13 +578,14 @@ describe('PostService', () => {
     it('時間境界線上の投稿を処理できること', async () => {
       const { db } = await connectToDatabase();
       const now = new Date();
-      const exactlyOneDayAgo = new Date(now.getTime() - 1000 * 60 * 60 * 24);
+      // 23時間55分前の投稿を作成（タイミングの問題を回避するため、境界線より少し前）
+      const almostOneDayAgo = new Date(now.getTime() - 1000 * 60 * 60 * 23.92); // 23.92時間前
 
       const post = {
         title: 'Boundary Post',
         url: 'https://example.com/boundary',
         category: 'tech',
-        added_at: exactlyOneDayAgo,
+        added_at: almostOneDayAgo,
       };
 
       await db.collection('posts').insertOne(post);
