@@ -1,4 +1,4 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import type { NextApiRequest, NextApiResponse } from 'next';
 import { TagService } from '../../../lib/services';
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {

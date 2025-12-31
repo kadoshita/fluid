@@ -36,7 +36,6 @@ describe('サービス統合テスト', () => {
     });
 
     it('複数の投稿を作成して24時間以内のクエリで取得できること', async () => {
-      const now = new Date();
       const posts = [
         {
           title: 'Post 1',
@@ -103,7 +102,6 @@ describe('サービス統合テスト', () => {
 
   describe('タグベースのフィルタリングワークフロー', () => {
     it('タグ付きの投稿を作成してタグで取得できること', async () => {
-      const now = new Date();
       const tag = 'javascript';
       const posts = [
         {

@@ -1,6 +1,6 @@
+import { writeFile } from 'node:fs/promises';
 import { MongoClient } from 'mongodb';
-import { DisplayPostData, InsertPostData } from '../@types/PostData';
-import { writeFile } from 'fs/promises';
+import type { DisplayPostData, InsertPostData } from '../@types/PostData';
 
 const { MONGODB_URI, MONGODB_DB } = process.env;
 

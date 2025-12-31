@@ -1,10 +1,9 @@
-import React from 'react';
+import type { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import Head from 'next/head';
 import Link from 'next/link';
-import { Container, Row, Col } from 'react-bootstrap';
-import MyNavbar from '../../components/common/Navbar';
+import { Col, Container, Row } from 'react-bootstrap';
 import Header from '../../components/common/Header';
-import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
+import MyNavbar from '../../components/common/Navbar';
 import { CategoryService } from '../../lib/services';
 
 export const getServerSideProps: GetServerSideProps = async () => {

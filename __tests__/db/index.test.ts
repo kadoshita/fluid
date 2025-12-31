@@ -86,8 +86,6 @@ describe('データベース接続', () => {
     it('postsコレクションを作成できること', async () => {
       const { db } = await connectToDatabase();
 
-      const collections = await db.listCollections({ name: 'posts' }).toArray();
-
       // Collection might not exist yet, but should be creatable
       await db.collection('posts').insertOne({
         title: 'Test',

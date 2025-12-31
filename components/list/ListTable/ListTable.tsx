@@ -1,6 +1,6 @@
-import React, { FC } from 'react';
+import type { FC } from 'react';
 import { Table } from 'react-bootstrap';
-import { DisplayPostData } from '../../../@types/PostData';
+import type { DisplayPostData } from '../../../@types/PostData';
 import ListItem from '../ListItem';
 
 interface Props {

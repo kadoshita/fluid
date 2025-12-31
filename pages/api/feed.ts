@@ -1,6 +1,5 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import type { NextApiRequest, NextApiResponse } from 'next';
 import RSS from 'rss';
-import { DisplayPostData } from '../../@types/PostData';
 import { PostService } from '../../lib/services';
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {

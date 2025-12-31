@@ -1,7 +1,8 @@
-import React, { FC } from 'react';
-import { useRouter } from 'next/router';
-import { DisplayPostData } from '../../../@types/PostData';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
+import type React from 'react';
+import type { FC } from 'react';
+import type { DisplayPostData } from '../../../@types/PostData';
 
 interface Props {
   data: DisplayPostData;

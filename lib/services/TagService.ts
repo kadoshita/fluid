@@ -1,5 +1,5 @@
+import type { DisplayPostData } from '../../@types/PostData';
 import { connectToDatabase } from '../../db';
-import { DisplayPostData } from '../../@types/PostData';
 
 export class TagService {
   /**

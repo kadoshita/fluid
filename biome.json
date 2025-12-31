@@ -55,21 +55,6 @@
     }
   },
   "files": {
-    "includes": [
-      "**",
-      "!**/node_modules/*",
-      "!**/apps/*",
-      "!**/.next/*",
-      "!**/dist",
-      "!**/build",
-      "!**/coverage",
-      "!**/.vscode",
-      "!**/.github",
-      "!**/public",
-      "!**/*.config.js",
-      "!**/*.config.mjs",
-      "!**/server.js"
-    ],
-    "ignoreUnknown": true
+    "includes": ["__tests__/**", "components/**", "db/**", "lib/**", "pages/**", "scripts/**"]
   }
 }

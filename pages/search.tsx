@@ -1,12 +1,12 @@
-import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
+import type { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import Head from 'next/head';
-import React, { useEffect, useState } from 'react';
-import { Container, Row, Col, Form, Button } from 'react-bootstrap';
-import { DisplayPostData } from '../@types/PostData';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+import { Button, Col, Container, Form, Row } from 'react-bootstrap';
+import type { DisplayPostData } from '../@types/PostData';
 import Header from '../components/common/Header';
 import MyNavbar from '../components/common/Navbar';
 import { ListTable } from '../components/list';
-import { useRouter } from 'next/router';
 import { CategoryService } from '../lib/services';
 
 export const getServerSideProps: GetServerSideProps = async () => {

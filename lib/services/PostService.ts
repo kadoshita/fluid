@@ -1,6 +1,6 @@
+import { type Filter, ObjectId } from 'mongodb';
+import type { DisplayPostData, InsertPostData } from '../../@types/PostData';
 import { connectToDatabase } from '../../db';
-import { DisplayPostData, InsertPostData } from '../../@types/PostData';
-import { Filter, ObjectId } from 'mongodb';
 
 /**
  * Escape special characters in a string for use in a regular expression

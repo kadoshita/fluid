@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import React from 'react';
+import type React from 'react';
 import { Nav, Navbar } from 'react-bootstrap';
 import style from './Navbar.module.css';
 
