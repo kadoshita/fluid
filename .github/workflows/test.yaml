@@ -7,6 +7,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     services:
       mongodb:
@@ -36,9 +37,16 @@ jobs:
       - name: Install dependencies
         run: npm i
 
+      - name: Install mongosh
+        run: |
+          wget -qO- https://www.mongodb.org/static/pgp/server-8.0.asc | sudo tee /etc/apt/trusted.gpg.d/server-8.0.asc
+          echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-8.0.list
+          sudo apt-get update
+          sudo apt-get install -y mongodb-mongosh
+
       - name: Wait for MongoDB to be ready
         run: |
-          until nc -z localhost 27017; do
+          until mongosh --host localhost:27017 --eval "db.adminCommand('ping')" > /dev/null 2>&1; do
             echo "Waiting for MongoDB..."
             sleep 2
           done
@@ -78,6 +86,7 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
 
     steps:
       - name: Checkout code
@@ -100,6 +109,7 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     services:
       mongodb:
@@ -125,9 +135,16 @@ jobs:
       - name: Install dependencies
         run: npm i
 
+      - name: Install mongosh
+        run: |
+          wget -qO- https://www.mongodb.org/static/pgp/server-8.0.asc | sudo tee /etc/apt/trusted.gpg.d/server-8.0.asc
+          echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-8.0.list
+          sudo apt-get update
+          sudo apt-get install -y mongodb-mongosh
+
       - name: Wait for MongoDB to be ready
         run: |
-          until nc -z localhost 27017; do
+          until mongosh --host localhost:27017 --eval "db.adminCommand('ping')" > /dev/null 2>&1; do
             echo "Waiting for MongoDB..."
             sleep 2
           done
