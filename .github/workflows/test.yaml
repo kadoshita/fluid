@@ -19,6 +19,10 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+        env:
+          MONGO_INITDB_ROOT_USERNAME: fluid
+          MONGO_INITDB_ROOT_PASSWORD: fluid
+          MONGO_INITDB_DATABASE: fluid_test
 
     strategy:
       matrix:
@@ -121,6 +125,10 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+        env:
+          MONGO_INITDB_ROOT_USERNAME: fluid
+          MONGO_INITDB_ROOT_PASSWORD: fluid
+          MONGO_INITDB_DATABASE: fluid_test
 
     steps:
       - name: Checkout code
