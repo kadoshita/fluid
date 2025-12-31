@@ -1,6 +1,6 @@
-import { type Db, MongoClient } from "mongodb";
-import { afterAll, beforeAll, beforeEach } from "vitest";
-import { resetCache } from "./db/index";
+import { type Db, MongoClient } from 'mongodb';
+import { afterAll, beforeAll, beforeEach } from 'vitest';
+import { resetCache } from './db/index';
 
 let client: MongoClient | null = null;
 let db: Db | null = null;
@@ -8,9 +8,9 @@ let db: Db | null = null;
 // Setup environment variables and MongoDB connection
 beforeAll(async () => {
   // Use test database
-  process.env.MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017";
-  process.env.MONGODB_DB = process.env.MONGODB_DB || "fluid_test";
-  process.env.TZ = "Asia/Tokyo";
+  process.env.MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+  process.env.MONGODB_DB = process.env.MONGODB_DB || 'fluid_test';
+  process.env.TZ = 'Asia/Tokyo';
 
   // Connect to MongoDB
   client = new MongoClient(process.env.MONGODB_URI);
@@ -40,8 +40,8 @@ beforeEach(async () => {
 
   // Recreate indexes that are needed for the application
   // These should match the indexes in db/index.ts
-  await db.collection("posts").createIndex({ url: 1 }, { unique: true });
-  await db.collection("domains").createIndex({ domain: 1 }, { unique: false });
+  await db.collection('posts').createIndex({ url: 1 }, { unique: true });
+  await db.collection('domains').createIndex({ domain: 1 }, { unique: false });
 });
 
 // Close MongoDB connection after all tests
@@ -51,7 +51,7 @@ afterAll(async () => {
       // Clean up test database after all tests
       await db.dropDatabase();
     } catch (error) {
-      console.error("Error cleaning up test database:", error);
+      console.error('Error cleaning up test database:', error);
     }
   }
   if (client) {

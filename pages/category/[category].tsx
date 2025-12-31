@@ -11,36 +11,43 @@ import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import { PostService } from '../../lib/services';
 
 export const getServerSideProps: GetServerSideProps = async ({ query }) => {
-    const { category } = query;
-    const categoryPostData: DisplayPostData[] = await PostService.getLatest7dPostsByCategory(category as string);
+  const { category } = query;
+  const categoryPostData: DisplayPostData[] = await PostService.getLatest7dPostsByCategory(
+    category as string
+  );
 
-    return {
-        props: { categoryPostData, category }
-    };
+  return {
+    props: { categoryPostData, category },
+  };
 };
 
-const Category = ({ categoryPostData, category }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
-    return (
-        <div>
-            <Head>
-                <title>fluid - {category}</title>
-                <link rel="icon" href="/favicon.ico" />
-                <Header title={`fluid - ${category}`}
-                    url={`https://fluid.sublimer.me/category/${category}`}
-                    description='An application for Web clipping and sharing.'
-                    image='https://fluid.sublimer.me/logo.png'
-                    type='article'
-                    keywords='RSS,Portal,News,Technology'></Header>
-            </Head>
-            <MyNavbar></MyNavbar>
-            <Container fluid>
-                <Row>
-                    <Col>
-                        <ListTable data={categoryPostData}></ListTable>
-                    </Col>
-                </Row>
-            </Container>
-        </div>
-    );
-}
+const Category = ({
+  categoryPostData,
+  category,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+  return (
+    <div>
+      <Head>
+        <title>fluid - {category}</title>
+        <link rel='icon' href='/favicon.ico' />
+        <Header
+          title={`fluid - ${category}`}
+          url={`https://fluid.sublimer.me/category/${category}`}
+          description='An application for Web clipping and sharing.'
+          image='https://fluid.sublimer.me/logo.png'
+          type='article'
+          keywords='RSS,Portal,News,Technology'
+        ></Header>
+      </Head>
+      <MyNavbar></MyNavbar>
+      <Container fluid>
+        <Row>
+          <Col>
+            <ListTable data={categoryPostData}></ListTable>
+          </Col>
+        </Row>
+      </Container>
+    </div>
+  );
+};
 export default Category;

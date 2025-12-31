@@ -13,9 +13,9 @@ export const getServerSideProps: GetServerSideProps = async () => {
   const data: DisplayPostData[] = await PostService.getLatest24hPosts();
   return {
     props: {
-      data
-    }
-  }
+      data,
+    },
+  };
 };
 
 const Home = ({ data }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
@@ -23,12 +23,15 @@ const Home = ({ data }: InferGetServerSidePropsType<typeof getServerSideProps>) 
     <div>
       <Head>
         <title>fluid - Home</title>
-        <link rel="icon" href="/favicon.ico" />
-        <Header title='fluid' url='https://fluid.sublimer.me'
+        <link rel='icon' href='/favicon.ico' />
+        <Header
+          title='fluid'
+          url='https://fluid.sublimer.me'
           description='An application for Web clipping and sharing.'
           image='https://fluid.sublimer.me/logo.png'
           type='website'
-          keywords='RSS,Portal,News,Technology'></Header>
+          keywords='RSS,Portal,News,Technology'
+        ></Header>
       </Head>
       <MyNavbar></MyNavbar>
       <Container fluid>
@@ -40,5 +43,5 @@ const Home = ({ data }: InferGetServerSidePropsType<typeof getServerSideProps>) 
       </Container>
     </div>
   );
-}
+};
 export default Home;
