@@ -159,7 +159,7 @@ jobs:
           MONGODB_DB: fluid_test
 
       - name: Start server in background
-        run: npm run start &
+        run: nohup npm run start > server.log 2>&1 &
         env:
           NODE_ENV: test
           TZ: Asia/Tokyo
@@ -184,3 +184,11 @@ jobs:
           MONGODB_URI: mongodb://localhost:27017
           MONGODB_DB: fluid_test
           API_TOKEN: token
+
+      - name: Upload server logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-logs
+          path: server.log
+          retention-days: 7
