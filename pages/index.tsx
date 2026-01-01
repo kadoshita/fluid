@@ -1,24 +1,20 @@
-import React from 'react';
-import absoluteUrl from 'next-absolute-url';
-import { Col, Container, Row } from 'react-bootstrap';
 import Head from 'next/head';
+import { Col, Container, Row } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import type { GetServerSideProps, InferGetServerSidePropsType } from 'next';
+import type { DisplayPostData } from '../@types/PostData';
+import Header from '../components/common/Header';
 import MyNavbar from '../components/common/Navbar';
 import { ListTable } from '../components/list';
-import { DisplayPostData } from '../@types/PostData';
-import Header from '../components/common/Header';
-import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
+import { PostService } from '../lib/services';
 
-export const getServerSideProps: GetServerSideProps = async ({ req }) => {
-  const { protocol, host } = absoluteUrl(req, 'localhost:3000');
-  const apiBaseURL = `${protocol}//${host}`;
-  const res = await fetch(`${apiBaseURL}/api/post`);
-  const data: DisplayPostData[] = await res.json();
+export const getServerSideProps: GetServerSideProps = async () => {
+  const data: DisplayPostData[] = await PostService.getLatest24hPosts();
   return {
     props: {
-      data
-    }
-  }
+      data,
+    },
+  };
 };
 
 const Home = ({ data }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
@@ -26,12 +22,15 @@ const Home = ({ data }: InferGetServerSidePropsType<typeof getServerSideProps>) 
     <div>
       <Head>
         <title>fluid - Home</title>
-        <link rel="icon" href="/favicon.ico" />
-        <Header title='fluid' url='https://fluid.sublimer.me'
+        <link rel='icon' href='/favicon.ico' />
+        <Header
+          title='fluid'
+          url='https://fluid.sublimer.me'
           description='An application for Web clipping and sharing.'
           image='https://fluid.sublimer.me/logo.png'
           type='website'
-          keywords='RSS,Portal,News,Technology'></Header>
+          keywords='RSS,Portal,News,Technology'
+        ></Header>
       </Head>
       <MyNavbar></MyNavbar>
       <Container fluid>
@@ -43,5 +42,5 @@ const Home = ({ data }: InferGetServerSidePropsType<typeof getServerSideProps>) 
       </Container>
     </div>
   );
-}
+};
 export default Home;

@@ -10,33 +10,13 @@ env:
   REGISTRY: ghcr.io
 
 jobs:
-  verup:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-    - name: Get version
-      id: get_version
-      run: echo "version=${GITHUB_REF##*/}" >> $GITHUB_OUTPUT
-    - uses: actions/checkout@v3
-      with:
-        ref: master
-        fetch-depth: 0
-    - name: Update package version
-      run: |
-        npm version from-git --no-git-tag-version
-    - name: Commit and push
-      run: |
-        git config user.name 'github-actions[bot]'
-        git config user.email 'github-actions[bot]@users.noreply.github.com'
-        git add .
-        git commit -m "Update version to ${{ steps.get_version.outputs.version }}"
-        git push -u origin master
+  test:
+    uses: ./.github/workflows/test.yaml
 
   build-image:
     runs-on: ubuntu-latest
-    needs:
-      - verup
+    timeout-minutes: 30
+    needs: test
     permissions:
       contents: read
       packages: write
@@ -73,15 +53,3 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           tags: ${{ env.REGISTRY }}/kadoshita/${{ env.IMAGE_NAME }}:${{ steps.get_version.outputs.version }}
           labels: ${{ steps.meta.outputs.labels }}
-
-  release:
-    runs-on: ubuntu-latest
-    needs:
-      - verup
-    permissions:
-      contents: write
-    steps:
-    - name: Release
-      uses: softprops/action-gh-release@v1
-      with:
-        generate_release_notes: true

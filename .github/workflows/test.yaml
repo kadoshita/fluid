@@ -1,0 +1,194 @@
+name: Test
+
+on:
+  push:
+  workflow_call:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    services:
+      mongodb:
+        image: mongo:8.2.3
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --username fluid --password fluid --authenticationDatabase admin --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        env:
+          MONGO_INITDB_ROOT_USERNAME: fluid
+          MONGO_INITDB_ROOT_PASSWORD: fluid
+          MONGO_INITDB_DATABASE: fluid_test
+
+    strategy:
+      matrix:
+        node-version: [22.x, 24.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm i
+
+      - name: Install mongosh
+        run: |
+          wget -qO- https://www.mongodb.org/static/pgp/server-8.0.asc | sudo tee /etc/apt/trusted.gpg.d/server-8.0.asc
+          echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-8.0.list
+          sudo apt-get update
+          sudo apt-get install -y mongodb-mongosh
+
+      - name: Wait for MongoDB to be ready
+        run: |
+          until mongosh --host localhost:27017 --username fluid --password fluid --authenticationDatabase admin --eval "db.adminCommand('ping')" > /dev/null 2>&1; do
+            echo "Waiting for MongoDB..."
+            sleep 2
+          done
+          echo "MongoDB is ready"
+
+      - name: Initialize test database
+        run: |
+          mongosh --host localhost:27017 --username fluid --password fluid --authenticationDatabase admin --eval "
+            use fluid_test;
+            db.dropDatabase();
+            print('Test database initialized');
+          "
+
+      - name: Run tests
+        run: npm run test:run
+        env:
+          NODE_ENV: test
+          TZ: Asia/Tokyo
+          MONGODB_URI: mongodb://fluid:fluid@localhost:27017?authSource=admin
+          MONGODB_DB: fluid_test
+
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm i
+
+      - name: Run Biome
+        run: npm run lint
+
+      - name: Check TypeScript compilation
+        run: npx tsc --noEmit
+
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      mongodb:
+        image: mongo:8.2.3
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --username fluid --password fluid --authenticationDatabase admin --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        env:
+          MONGO_INITDB_ROOT_USERNAME: fluid
+          MONGO_INITDB_ROOT_PASSWORD: fluid
+          MONGO_INITDB_DATABASE: fluid_test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm i
+
+      - name: Install mongosh
+        run: |
+          wget -qO- https://www.mongodb.org/static/pgp/server-8.0.asc | sudo tee /etc/apt/trusted.gpg.d/server-8.0.asc
+          echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-8.0.list
+          sudo apt-get update
+          sudo apt-get install -y mongodb-mongosh
+
+      - name: Wait for MongoDB to be ready
+        run: |
+          until mongosh --host localhost:27017 --username fluid --password fluid --authenticationDatabase admin --eval "db.adminCommand('ping')" > /dev/null 2>&1; do
+            echo "Waiting for MongoDB..."
+            sleep 2
+          done
+          echo "MongoDB is ready"
+
+      - name: Initialize test database
+        run: |
+          mongosh --host localhost:27017 --username fluid --password fluid --authenticationDatabase admin --eval "
+            use fluid_test;
+            db.dropDatabase();
+            print('Test database initialized');
+          "
+
+      - name: Build Next.js application
+        run: npm run build
+        env:
+          NODE_ENV: production
+          TZ: Asia/Tokyo
+          MONGODB_URI: mongodb://fluid:fluid@localhost:27017?authSource=admin
+          MONGODB_DB: fluid_test
+
+      - name: Start server in background
+        run: nohup npm run start > server.log 2>&1 &
+        env:
+          NODE_ENV: test
+          TZ: Asia/Tokyo
+          MONGODB_URI: mongodb://fluid:fluid@localhost:27017?authSource=admin
+          MONGODB_DB: fluid_test
+          API_TOKEN: token
+          PORT: 3000
+
+      - name: Wait for server to be ready
+        run: |
+          timeout 60 bash -c 'until curl -f http://localhost:3000/api/health > /dev/null 2>&1; do
+            echo "Waiting for server..."
+            sleep 2
+          done'
+          echo "Server is ready"
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+        env:
+          NODE_ENV: test
+          TZ: Asia/Tokyo
+          MONGODB_URI: mongodb://fluid:fluid@localhost:27017?authSource=admin
+          MONGODB_DB: fluid_test
+          API_TOKEN: token
+
+      - name: Upload server logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-logs
+          path: server.log
+          retention-days: 7

@@ -1,4 +1,4 @@
-FROM node:18.15.0-bullseye-slim
+FROM node:24.12.0-bullseye-slim
 
 WORKDIR /usr/local/src
 ENV TZ Asia/Tokyo
