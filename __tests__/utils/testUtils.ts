@@ -9,7 +9,7 @@ export function createMockDisplayPost(overrides?: Partial<DisplayPostData>): Dis
     title: 'Test Post',
     url: 'https://example.com/test',
     category: 'tech',
-    added_at: new Date('2024-01-01T00:00:00.000Z'),
+    added_at: new Date('2024-01-01T00:00:00.000Z').toISOString(),
     description: 'Test description',
     comment: 'Test comment',
     image: 'https://example.com/image.jpg',
