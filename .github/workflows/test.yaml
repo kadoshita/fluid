@@ -15,7 +15,7 @@ jobs:
         ports:
           - 27017:27017
         options: >-
-          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-cmd "mongosh --username fluid --password fluid --authenticationDatabase admin --eval 'db.runCommand({ ping: 1 })'"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -50,7 +50,7 @@ jobs:
 
       - name: Wait for MongoDB to be ready
         run: |
-          until mongosh --host localhost:27017 --eval "db.adminCommand('ping')" > /dev/null 2>&1; do
+          until mongosh --host localhost:27017 --username fluid --password fluid --authenticationDatabase admin --eval "db.adminCommand('ping')" > /dev/null 2>&1; do
             echo "Waiting for MongoDB..."
             sleep 2
           done
@@ -58,7 +58,7 @@ jobs:
 
       - name: Initialize test database
         run: |
-          mongosh --host localhost:27017 --eval "
+          mongosh --host localhost:27017 --username fluid --password fluid --authenticationDatabase admin --eval "
             use fluid_test;
             db.dropDatabase();
             print('Test database initialized');
@@ -69,7 +69,7 @@ jobs:
         env:
           NODE_ENV: test
           TZ: Asia/Tokyo
-          MONGODB_URI: mongodb://localhost:27017
+          MONGODB_URI: mongodb://fluid:fluid@localhost:27017?authSource=admin
           MONGODB_DB: fluid_test
 
   lint:
@@ -105,7 +105,7 @@ jobs:
         ports:
           - 27017:27017
         options: >-
-          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-cmd "mongosh --username fluid --password fluid --authenticationDatabase admin --eval 'db.runCommand({ ping: 1 })'"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -136,7 +136,7 @@ jobs:
 
       - name: Wait for MongoDB to be ready
         run: |
-          until mongosh --host localhost:27017 --eval "db.adminCommand('ping')" > /dev/null 2>&1; do
+          until mongosh --host localhost:27017 --username fluid --password fluid --authenticationDatabase admin --eval "db.adminCommand('ping')" > /dev/null 2>&1; do
             echo "Waiting for MongoDB..."
             sleep 2
           done
@@ -144,9 +144,8 @@ jobs:
 
       - name: Initialize test database
         run: |
-          mongosh --host localhost:27017 --eval "
+          mongosh --host localhost:27017 --username fluid --password fluid --authenticationDatabase admin --eval "
             use fluid_test;
-            db.auth('fluid', 'fluid');
             db.dropDatabase();
             print('Test database initialized');
           "
@@ -182,7 +181,7 @@ jobs:
         env:
           NODE_ENV: test
           TZ: Asia/Tokyo
-          MONGODB_URI: mongodb://localhost:27017
+          MONGODB_URI: mongodb://fluid:fluid@localhost:27017?authSource=admin
           MONGODB_DB: fluid_test
           API_TOKEN: token
 
