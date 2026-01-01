@@ -23,7 +23,7 @@ describe('ヘルスチェック E2E テスト', () => {
     const response = await fetch(`${BASE_URL}/api/health`);
     const data = await response.json();
 
-    expect(data.version).toBe('1.6.0');
+    expect(data.version).toBe('1.7.0');
   });
 
   it('複数の同時リクエストを処理できること', async () => {
