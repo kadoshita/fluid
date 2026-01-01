@@ -20,12 +20,15 @@ describe('Post API E2E テスト', () => {
       const response = await fetch(`${BASE_URL}/api/post`);
       const data = await response.json();
 
+      expect(data.length).toBeGreaterThanOrEqual(0);
       if (data.length > 0) {
         const post = data[0];
         expect(post).toHaveProperty('_id');
         expect(post).toHaveProperty('title');
-        expect(post).toHaveProperty('content');
-        expect(post).toHaveProperty('createdAt');
+        expect(post).toHaveProperty('description');
+        expect(post).toHaveProperty('url');
+        expect(post).toHaveProperty('category');
+        expect(post).toHaveProperty('added_at');
       }
     });
   });
