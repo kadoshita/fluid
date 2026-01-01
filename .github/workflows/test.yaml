@@ -146,6 +146,7 @@ jobs:
         run: |
           mongosh --host localhost:27017 --eval "
             use fluid_test;
+            db.auth('fluid', 'fluid');
             db.dropDatabase();
             print('Test database initialized');
           "
@@ -155,7 +156,7 @@ jobs:
         env:
           NODE_ENV: production
           TZ: Asia/Tokyo
-          MONGODB_URI: mongodb://localhost:27017
+          MONGODB_URI: mongodb://fluid:fluid@localhost:27017?authSource=admin
           MONGODB_DB: fluid_test
 
       - name: Start server in background
@@ -163,7 +164,7 @@ jobs:
         env:
           NODE_ENV: test
           TZ: Asia/Tokyo
-          MONGODB_URI: mongodb://localhost:27017
+          MONGODB_URI: mongodb://fluid:fluid@localhost:27017?authSource=admin
           MONGODB_DB: fluid_test
           API_TOKEN: token
           PORT: 3000
