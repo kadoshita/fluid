@@ -34,7 +34,8 @@ beforeEach(async () => {
     try {
       await db.collection(collection.name).drop();
     } catch (error) {
-      // Ignore errors if collection doesn't exist
+      // Log errors during collection drop to aid debugging, but do not fail the test setup
+      console.warn(`Failed to drop collection "${collection.name}" during test setup:`, error);
     }
   }
 
