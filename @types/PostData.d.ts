@@ -11,6 +11,7 @@ export interface PostData {
 export interface InsertPostData extends PostData {
   added_at: Date;
 }
-export interface DisplayPostData extends InsertPostData {
+export interface DisplayPostData extends PostData {
   _id: string;
+  added_at: string;
 }

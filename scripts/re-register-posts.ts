@@ -1,6 +1,6 @@
 import { writeFile } from 'node:fs/promises';
 import { MongoClient } from 'mongodb';
-import type { DisplayPostData, InsertPostData } from '../@types/PostData';
+import type { InsertPostData } from '../@types/PostData';
 
 const { MONGODB_URI, MONGODB_DB } = process.env;
 
@@ -8,7 +8,7 @@ const { MONGODB_URI, MONGODB_DB } = process.env;
   const client = await MongoClient.connect(MONGODB_URI, {});
   const db = client.db(MONGODB_DB);
 
-  const posts = await db.collection<DisplayPostData>('posts').find().toArray();
+  const posts = await db.collection('posts').find().toArray();
 
   await db.dropCollection('posts');
   console.log('drop collection posts');
@@ -23,9 +23,11 @@ const { MONGODB_URI, MONGODB_DB } = process.env;
   let dupCount = 0;
   for (let i = 0; i < posts.length; i++) {
     try {
-      await db.collection<DisplayPostData>('posts').insertOne({
-        ...posts[i],
-        added_at: posts[i].added_at!,
+      const { _id, ...postData } = posts[i];
+      await db.collection('posts').insertOne({
+        ...postData,
+        added_at:
+          postData.added_at instanceof Date ? postData.added_at : new Date(postData.added_at),
       });
     } catch (e) {
       if (e.code === 11000) {
@@ -33,9 +35,14 @@ const { MONGODB_URI, MONGODB_DB } = process.env;
         dupCount++;
         continue;
       }
+      const { _id, ...postData } = posts[i];
       failedPosts.push({
         error: e,
-        data: posts[i],
+        data: {
+          ...postData,
+          added_at:
+            postData.added_at instanceof Date ? postData.added_at : new Date(postData.added_at),
+        } as InsertPostData,
       });
       console.warn(`failed to insert ${i}th post`, e);
     }

@@ -1,4 +1,4 @@
-import { type Filter, ObjectId } from 'mongodb';
+import { type Document, type Filter, ObjectId, type WithId } from 'mongodb';
 import type { DisplayPostData, InsertPostData } from '../../@types/PostData';
 import { connectToDatabase } from '../../db';
 
@@ -18,8 +18,8 @@ export class PostService {
     const now = new Date();
     const before24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
-    return await db
-      .collection<DisplayPostData>('posts')
+    const posts = await db
+      .collection('posts')
       .find({
         added_at: {
           $gte: before24h,
@@ -28,6 +28,12 @@ export class PostService {
       })
       .sort({ added_at: -1 })
       .toArray();
+
+    return posts.map((post) => ({
+      ...post,
+      _id: post._id.toString(),
+      added_at: post.added_at.toISOString(),
+    })) as DisplayPostData[];
   }
 
   /**
@@ -38,8 +44,8 @@ export class PostService {
     const now = new Date();
     const before7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-    return await db
-      .collection<DisplayPostData>('posts')
+    const posts = await db
+      .collection('posts')
       .find({
         added_at: {
           $gte: before7d,
@@ -49,6 +55,12 @@ export class PostService {
       })
       .sort({ added_at: -1 })
       .toArray();
+
+    return posts.map((post) => ({
+      ...post,
+      _id: post._id.toString(),
+      added_at: post.added_at.toISOString(),
+    })) as DisplayPostData[];
   }
 
   /**
@@ -61,12 +73,12 @@ export class PostService {
   ): Promise<DisplayPostData[]> {
     const { db } = await connectToDatabase();
 
-    const conditions: Filter<DisplayPostData>[] = [];
+    const conditions: Filter<WithId<Document>>[] = [];
 
     // Add keyword conditions (title OR description matches)
     if (keyword && keyword.trim() !== '') {
       const keywordList = keyword.split(/\s+/).filter((word) => word.length > 0);
-      const keywordQueries: Filter<DisplayPostData>[] = keywordList.map((word) => {
+      const keywordQueries: Filter<WithId<Document>>[] = keywordList.map((word) => {
         const escapedWord = escapeRegExp(word);
         const keywordRegexp = new RegExp(escapedWord, 'i');
         return {
@@ -88,14 +100,20 @@ export class PostService {
       conditions.push({ url: urlRegexp });
     }
 
-    const findQuery: Filter<DisplayPostData> = conditions.length > 0 ? { $and: conditions } : {};
+    const findQuery: Filter<Document> = conditions.length > 0 ? { $and: conditions } : {};
 
-    return await db
-      .collection<DisplayPostData>('posts')
+    const posts = await db
+      .collection('posts')
       .find(findQuery)
       .sort({ added_at: -1 })
       .limit(30)
       .toArray();
+
+    return posts.map((post) => ({
+      ...post,
+      _id: post._id.toString(),
+      added_at: post.added_at.toISOString(),
+    })) as DisplayPostData[];
   }
 
   /**
@@ -128,7 +146,13 @@ export class PostService {
 
     const result = await db.collection('posts').findOne({ _id: new ObjectId(id) });
 
-    return result as unknown as DisplayPostData | null;
+    if (!result) return null;
+
+    return {
+      ...result,
+      _id: result._id.toString(),
+      added_at: result.added_at.toISOString(),
+    } as DisplayPostData;
   }
 
   /**
@@ -139,8 +163,8 @@ export class PostService {
     const now = new Date();
     const before24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
-    return await db
-      .collection<DisplayPostData>('posts')
+    const posts = await db
+      .collection('posts')
       .find({
         added_at: {
           $gte: before24h,
@@ -150,6 +174,12 @@ export class PostService {
       })
       .sort({ added_at: -1 })
       .toArray();
+
+    return posts.map((post) => ({
+      ...post,
+      _id: post._id.toString(),
+      added_at: post.added_at.toISOString(),
+    })) as DisplayPostData[];
   }
 
   /**

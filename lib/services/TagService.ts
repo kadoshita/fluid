@@ -18,8 +18,8 @@ export class TagService {
     const now = new Date();
     const before7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-    return await db
-      .collection<DisplayPostData>('posts')
+    const posts = await db
+      .collection('posts')
       .find({
         added_at: {
           $gte: before7d,
@@ -31,5 +31,11 @@ export class TagService {
       })
       .sort({ added_at: -1 })
       .toArray();
+
+    return posts.map((post) => ({
+      ...post,
+      _id: post._id.toString(),
+      added_at: post.added_at.toISOString(),
+    })) as DisplayPostData[];
   }
 }
