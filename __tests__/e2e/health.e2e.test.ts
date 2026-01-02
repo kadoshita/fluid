@@ -20,10 +20,12 @@ describe('ヘルスチェック E2E テスト', () => {
   });
 
   it('package.jsonからバージョンを返すこと', async () => {
+    const packageJson = await import('../../package.json');
+    const expectedVersion = packageJson.version;
     const response = await fetch(`${BASE_URL}/api/health`);
     const data = await response.json();
 
-    expect(data.version).toBe('1.7.0');
+    expect(data.version).toBe(expectedVersion);
   });
 
   it('複数の同時リクエストを処理できること', async () => {
