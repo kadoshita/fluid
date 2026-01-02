@@ -1,6 +1,6 @@
 {
   "name": "fluid",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "private": true,
   "engines": {
     "node": ">=22.0.0"
