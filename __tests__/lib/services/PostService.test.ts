@@ -422,7 +422,8 @@ describe('PostService', () => {
         title: 'C++ Tutorial: Pointers & References',
         url: 'https://example.com/cpp',
         category: 'tech',
-        added_at: new Date(),
+        // getLatest24hPosts の $lt 境界との衝突を避けるため、過去の日時を使用する
+        added_at: new Date(Date.now() - 1000),
       };
 
       await db.collection('posts').insertOne(post);
