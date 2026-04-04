@@ -1,7 +1,7 @@
 import type { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Button, Col, Container, Form, Row } from 'react-bootstrap';
 import type { DisplayPostData } from '../@types/PostData';
 import Header from '../components/common/Header';
@@ -29,13 +29,16 @@ const Search = ({ categories }: InferGetServerSidePropsType<typeof getServerSide
   const [url, setUrl] = useState<string>(queryUrl || '');
   const [category, setCategory] = useState<string>(queryCategory || '');
 
-  const fetchSearchResult = async (keyword, category, url) => {
-    const query = new URLSearchParams({ keyword, category, url });
-    router.replace(`/search?${query}`);
-    const res = await fetch(`/api/search?${query}`);
-    const data: DisplayPostData[] = await res.json();
-    setPostData(data);
-  };
+  const fetchSearchResult = useCallback(
+    async (keyword, category, url) => {
+      const query = new URLSearchParams({ keyword, category, url });
+      router.replace(`/search?${query}`);
+      const res = await fetch(`/api/search?${query}`);
+      const data: DisplayPostData[] = await res.json();
+      setPostData(data);
+    },
+    [router]
+  );
 
   const handleSubmit = async () => {
     await fetchSearchResult(keyword, category, url);
@@ -47,7 +50,7 @@ const Search = ({ categories }: InferGetServerSidePropsType<typeof getServerSide
     if (queryKeyword !== '' || queryCategory !== '' || queryUrl !== '') {
       fetchSearchResult(queryKeyword, queryCategory, queryUrl);
     }
-  }, []);
+  }, [queryKeyword, queryCategory, queryUrl, fetchSearchResult]);
 
   return (
     <div>
@@ -81,8 +84,8 @@ const Search = ({ categories }: InferGetServerSidePropsType<typeof getServerSide
             />
             <Form.Label>Category</Form.Label>
             <Form.Control as='select' onChange={({ target }) => setCategory(target.value)}>
-              {[''].concat(categories).map((c, i) => (
-                <option key={i} value={c}>
+              {[''].concat(categories).map((c) => (
+                <option key={c} value={c}>
                   {c}
                 </option>
               ))}

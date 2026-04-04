@@ -1,19 +1,19 @@
 import type { DisplayPostData } from '../../@types/PostData';
 import { connectToDatabase } from '../../db';
 
-export class TagService {
+export const TagService = {
   /**
    * Get all distinct tags from posts
    */
-  static async getAllTags(): Promise<string[]> {
+  async getAllTags(): Promise<string[]> {
     const { db } = await connectToDatabase();
     return await db.collection('posts').distinct('tag');
-  }
+  },
 
   /**
    * Get latest 7 days posts by tag
    */
-  static async getLatest7dPostsByTag(tag: string): Promise<DisplayPostData[]> {
+  async getLatest7dPostsByTag(tag: string): Promise<DisplayPostData[]> {
     const { db } = await connectToDatabase();
     const now = new Date();
     const before7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -37,5 +37,5 @@ export class TagService {
       _id: post._id.toString(),
       added_at: post.added_at.toISOString(),
     })) as DisplayPostData[];
-  }
-}
+  },
+};

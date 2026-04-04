@@ -9,11 +9,11 @@ function escapeRegExp(string: string): string {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-export class PostService {
+export const PostService = {
   /**
    * Get latest 24 hours posts
    */
-  static async getLatest24hPosts(): Promise<DisplayPostData[]> {
+  async getLatest24hPosts(): Promise<DisplayPostData[]> {
     const { db } = await connectToDatabase();
     const now = new Date();
     const before24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -34,12 +34,12 @@ export class PostService {
       _id: post._id.toString(),
       added_at: post.added_at.toISOString(),
     })) as DisplayPostData[];
-  }
+  },
 
   /**
    * Get latest 7 days posts by category
    */
-  static async getLatest7dPostsByCategory(category: string): Promise<DisplayPostData[]> {
+  async getLatest7dPostsByCategory(category: string): Promise<DisplayPostData[]> {
     const { db } = await connectToDatabase();
     const now = new Date();
     const before7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -61,16 +61,12 @@ export class PostService {
       _id: post._id.toString(),
       added_at: post.added_at.toISOString(),
     })) as DisplayPostData[];
-  }
+  },
 
   /**
    * Search posts by keyword, category, and URL
    */
-  static async searchPosts(
-    keyword: string,
-    category: string,
-    url: string
-  ): Promise<DisplayPostData[]> {
+  async searchPosts(keyword: string, category: string, url: string): Promise<DisplayPostData[]> {
     const { db } = await connectToDatabase();
 
     const conditions: Filter<WithId<Document>>[] = [];
@@ -114,12 +110,12 @@ export class PostService {
       _id: post._id.toString(),
       added_at: post.added_at.toISOString(),
     })) as DisplayPostData[];
-  }
+  },
 
   /**
    * Create a new post
    */
-  static async createPost(postData: Omit<InsertPostData, 'added_at'>): Promise<void> {
+  async createPost(postData: Omit<InsertPostData, 'added_at'>): Promise<void> {
     const { db } = await connectToDatabase();
     const added_at = new Date();
     const insertData: InsertPostData = { ...postData, added_at };
@@ -136,12 +132,12 @@ export class PostService {
       category,
       added_at,
     });
-  }
+  },
 
   /**
    * Get post by ID
    */
-  static async getPostById(id: string): Promise<DisplayPostData | null> {
+  async getPostById(id: string): Promise<DisplayPostData | null> {
     const { db } = await connectToDatabase();
 
     const result = await db.collection('posts').findOne({ _id: new ObjectId(id) });
@@ -153,12 +149,12 @@ export class PostService {
       _id: result._id.toString(),
       added_at: result.added_at.toISOString(),
     } as DisplayPostData;
-  }
+  },
 
   /**
    * Get latest 24 hours posts by category
    */
-  static async getLatest24hPostsByCategory(category: string): Promise<DisplayPostData[]> {
+  async getLatest24hPostsByCategory(category: string): Promise<DisplayPostData[]> {
     const { db } = await connectToDatabase();
     const now = new Date();
     const before24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -180,13 +176,13 @@ export class PostService {
       _id: post._id.toString(),
       added_at: post.added_at.toISOString(),
     })) as DisplayPostData[];
-  }
+  },
 
   /**
    * Get total count of posts for health check
    */
-  static async getPostCount(): Promise<number> {
+  async getPostCount(): Promise<number> {
     const { db } = await connectToDatabase();
     return await db.collection('posts').countDocuments();
-  }
-}
+  },
+};

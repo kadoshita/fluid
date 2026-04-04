@@ -34,8 +34,8 @@ const Category = ({ categories }: InferGetServerSidePropsType<typeof getServerSi
         <Row>
           <Col>
             <ul>
-              {categories.map((c, i) => (
-                <li key={i}>
+              {categories.map((c, _i) => (
+                <li key={c}>
                   <Link href={`/category/${c}`}>{c}</Link>
                 </li>
               ))}
