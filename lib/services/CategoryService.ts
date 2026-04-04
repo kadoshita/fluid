@@ -1,20 +1,20 @@
 import { connectToDatabase } from '../../db';
 
-export class CategoryService {
+export const CategoryService = {
   /**
    * Get all distinct categories from posts
    */
-  static async getAllCategories(): Promise<string[]> {
+  async getAllCategories(): Promise<string[]> {
     const { db } = await connectToDatabase();
     return await db.collection('posts').distinct('category');
-  }
+  },
 
   /**
    * Get categories sorted by domain usage frequency
    * If domain is provided, sort by frequency for that domain
    * If domain has no history, return categories with empty string first
    */
-  static async getCategoriesWithDomainFrequency(domain?: string): Promise<string[]> {
+  async getCategoriesWithDomainFrequency(domain?: string): Promise<string[]> {
     const { db } = await connectToDatabase();
     const categories = await db.collection('posts').distinct('category');
 
@@ -59,5 +59,5 @@ export class CategoryService {
         return countB - countA;
       });
     }
-  }
-}
+  },
+};

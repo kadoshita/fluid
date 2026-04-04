@@ -19,8 +19,8 @@ const ListTable: FC<Props> = ({ data }) => {
         </tr>
       </thead>
       <tbody>
-        {data.map((d, i) => (
-          <ListItem key={i} data={d}></ListItem>
+        {data.map((d, _i) => (
+          <ListItem key={d._id} data={d}></ListItem>
         ))}
       </tbody>
     </Table>

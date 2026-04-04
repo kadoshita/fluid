@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import RSS from 'rss';
 import { PostService } from '../../lib/services';
 
-export default async (req: NextApiRequest, res: NextApiResponse) => {
+export default async (_req: NextApiRequest, res: NextApiResponse) => {
   const url = 'https://fluid.sublimer.me';
   const feed = new RSS({
     title: 'fluid',

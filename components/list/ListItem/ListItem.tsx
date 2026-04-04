@@ -26,7 +26,7 @@ const ListItem: FC<Props> = ({ data }) => {
         <Link href={`/category/${data.category}`}>{data.category}</Link>
       </td>
       <td style={{ overflowX: 'hidden', whiteSpace: 'nowrap' }}>
-        <a href={data.url} target='_blank'>
+        <a href={data.url} target='_blank' rel='noopener'>
           {data.url}
         </a>
       </td>

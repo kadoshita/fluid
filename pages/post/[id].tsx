@@ -64,8 +64,8 @@ const Post = ({ postData, id }: InferGetServerSidePropsType<typeof getServerSide
                         <Card.Text className='text-left'>{postData.comment}</Card.Text>
                         <Card.Img src={postData.image} style={{ width: '18rem' }}></Card.Img>
                         <Card.Text>
-                          {postData.tag.map((t, i) => (
-                            <Link key={i} href={`/tag/${t}`} style={{ marginRight: '8px' }}>
+                          {postData.tag.map((t) => (
+                            <Link key={t} href={`/tag/${t}`} style={{ marginRight: '8px' }}>
                               {t}
                             </Link>
                           ))}
