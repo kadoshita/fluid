@@ -9,6 +9,8 @@ updates:
       npm-dependencies:
         patterns:
           - "*"
+    ignore:
+      - dependency-name: '@types/node'
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
