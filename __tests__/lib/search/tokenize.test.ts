@@ -1,0 +1,58 @@
+import { describe, expect, it } from 'vitest';
+import { tokenizeForIndex } from '../../../lib/search/tokenize';
+
+function tokenSet(input: string): Set<string> {
+  return new Set(tokenizeForIndex(input).split(' ').filter(Boolean));
+}
+
+describe('tokenizeForIndex', () => {
+  it('空文字列を安全に扱えること', () => {
+    expect(tokenizeForIndex('')).toBe('');
+  });
+
+  it('CJK文字列を1-gramとbi-gram両方に分解すること', () => {
+    const tokens = tokenSet('日本語');
+    // 1-grams
+    expect(tokens.has('日')).toBe(true);
+    expect(tokens.has('本')).toBe(true);
+    expect(tokens.has('語')).toBe(true);
+    // bi-grams
+    expect(tokens.has('日本')).toBe(true);
+    expect(tokens.has('本語')).toBe(true);
+  });
+
+  it('英字はNFKC後の小文字単語として1トークンで残ること', () => {
+    const tokens = tokenSet('React Tutorial');
+    expect(tokens.has('react')).toBe(true);
+    expect(tokens.has('tutorial')).toBe(true);
+  });
+
+  it('C++やC#のような記号入り短トークンが原文として保持されること', () => {
+    const tokens = tokenSet('C++ Tutorial');
+    expect(tokens.has('c++')).toBe(true);
+  });
+
+  it('CJKとLatinの境界でトークンが正しく分かれること', () => {
+    const tokens = tokenSet('React入門');
+    expect(tokens.has('react')).toBe(true);
+    expect(tokens.has('入')).toBe(true);
+    expect(tokens.has('門')).toBe(true);
+    expect(tokens.has('入門')).toBe(true);
+    // React should not appear inside any CJK bi-gram
+    expect(tokens.has('t入')).toBe(false);
+  });
+
+  it('カタカナ入力はひらがなに正規化された上でbi-gram化されること', () => {
+    const tokens = tokenSet('プログラミング');
+    // Normalized to ひらがな
+    expect(tokens.has('ぷろ')).toBe(true);
+    expect(tokens.has('ぐら')).toBe(true);
+  });
+
+  it('重複したトークンは1個にまとめられること', () => {
+    const result = tokenizeForIndex('React React React');
+    const parts = result.split(' ').filter(Boolean);
+    const unique = new Set(parts);
+    expect(parts.length).toBe(unique.size);
+  });
+});

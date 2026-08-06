@@ -52,6 +52,17 @@ describe('データベース接続', () => {
       expect(urlIndex?.unique).toBe(true);
     });
 
+    it('posts.search_tokensにテキストインデックスを作成すること', async () => {
+      const result = await connectToDatabase();
+      const indexes = await result.db.collection('posts').indexes();
+
+      const textIndex = indexes.find((idx) => idx.name === 'posts_search_tokens_text');
+      expect(textIndex).toBeDefined();
+      // MongoDB reports text indexes with a `_fts` marker in `key`
+      expect(textIndex?.key._fts).toBe('text');
+      expect(textIndex?.default_language).toBe('none');
+    });
+
     it('domains.domainに非ユニークインデックスを作成すること', async () => {
       const result = await connectToDatabase();
       const indexes = await result.db.collection('domains').indexes();
