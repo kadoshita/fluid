@@ -42,6 +42,10 @@ beforeEach(async () => {
   // Recreate indexes that are needed for the application
   // These should match the indexes in db/index.ts
   await db.collection('posts').createIndex({ url: 1 }, { unique: true });
+  await db.collection('posts').createIndex(
+    { search_tokens: 'text' },
+    { name: 'posts_search_tokens_text', default_language: 'none' }
+  );
   await db.collection('domains').createIndex({ domain: 1 }, { unique: false });
 });
 

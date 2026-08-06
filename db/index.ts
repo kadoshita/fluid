@@ -27,6 +27,15 @@ export async function connectToDatabase() {
 
       // Create indexes
       await db.collection('posts').createIndex({ url: 1 }, { unique: true });
+      // Full-text search over normalized+tokenized post text.
+      // `default_language: 'none'` disables English stemming/stopword removal
+      // so our own tokens (CJK bi-grams, mixed-script) survive intact.
+      await db
+        .collection('posts')
+        .createIndex(
+          { search_tokens: 'text' },
+          { name: 'posts_search_tokens_text', default_language: 'none' }
+        );
       await db.collection('domains').createIndex({ domain: 1 }, { unique: false });
 
       return {
