@@ -300,6 +300,165 @@ describe('PostService', () => {
     });
   });
 
+  describe('searchPosts (日本語 lexical index)', () => {
+    it('日本語で単語をまたぐ部分一致がヒットすること', async () => {
+      await PostService.createPost({
+        title: 'React入門と応用',
+        url: 'https://example.com/react-nyumon',
+        category: 'tech',
+        description: 'Reactの基礎から応用まで',
+      });
+      await PostService.createPost({
+        title: 'Vue入門',
+        url: 'https://example.com/vue-nyumon',
+        category: 'tech',
+        description: 'Vueの基礎',
+      });
+
+      const result = await PostService.searchPosts('入門', '', '');
+      // Both posts contain 入門, both should match
+      const titles = result.map((r) => r.title).sort();
+      expect(titles).toEqual(['React入門と応用', 'Vue入門']);
+    });
+
+    it('カタカナ・ひらがな相互で検索できること', async () => {
+      await PostService.createPost({
+        title: 'プログラミング言語',
+        url: 'https://example.com/lang',
+        category: 'tech',
+        description: 'いろいろな言語の比較',
+      });
+
+      const kataResult = await PostService.searchPosts('げんご', '', '');
+      expect(kataResult.map((r) => r.title)).toContain('プログラミング言語');
+
+      const hiraDoc = await PostService.searchPosts('プログラミング', '', '');
+      expect(hiraDoc.map((r) => r.title)).toContain('プログラミング言語');
+    });
+
+    it('NFKC正規化で半角/全角の差を吸収すること', async () => {
+      await PostService.createPost({
+        title: 'ＴｙｐｅＳｃｒｉｐｔ入門',
+        url: 'https://example.com/ts',
+        category: 'tech',
+      });
+
+      const result = await PostService.searchPosts('TypeScript', '', '');
+      expect(result.map((r) => r.title)).toContain('ＴｙｐｅＳｃｒｉｐｔ入門');
+    });
+
+    it('大文字/小文字を同一視すること', async () => {
+      await PostService.createPost({
+        title: 'React Tutorial',
+        url: 'https://example.com/react-tut',
+        category: 'tech',
+      });
+
+      const upper = await PostService.searchPosts('REACT', '', '');
+      expect(upper.map((r) => r.title)).toContain('React Tutorial');
+
+      const lower = await PostService.searchPosts('react', '', '');
+      expect(lower.map((r) => r.title)).toContain('React Tutorial');
+    });
+
+    it('適合度スコアで関連度の高い投稿が上位に来ること', async () => {
+      // Post A mentions React only in the title.
+      // Post B mentions React multiple times (title + description).
+      await PostService.createPost({
+        title: 'React',
+        url: 'https://example.com/react-a',
+        category: 'tech',
+        description: 'A single mention',
+      });
+      await PostService.createPost({
+        title: 'React React React',
+        url: 'https://example.com/react-b',
+        category: 'tech',
+        description: 'React React React',
+      });
+
+      const result = await PostService.searchPosts('React', '', '');
+      expect(result[0].title).toBe('React React React');
+    });
+
+    it('search_tokensが存在しないドキュメント (レガシー) でも regex フォールバックで拾えること', async () => {
+      const { db } = await connectToDatabase();
+      await db.collection('posts').insertOne({
+        title: 'Legacy Post about Go',
+        url: 'https://example.com/legacy-go',
+        category: 'tech',
+        description: 'A post without search_tokens',
+        added_at: new Date(),
+      });
+
+      const result = await PostService.searchPosts('Legacy', '', '');
+      expect(result.map((r) => r.title)).toContain('Legacy Post about Go');
+    });
+
+    it('nolexical (disableLexical) 指定で常に regex パスを使うこと', async () => {
+      await PostService.createPost({
+        title: 'React入門',
+        url: 'https://example.com/reg',
+        category: 'tech',
+      });
+
+      // With lexical disabled, the legacy AND-regex should still find it.
+      const result = await PostService.searchPosts('入門', '', '', { disableLexical: true });
+      expect(result.map((r) => r.title)).toContain('React入門');
+    });
+
+    it('limit オプションが尊重されること', async () => {
+      for (let i = 0; i < 15; i++) {
+        await PostService.createPost({
+          title: `記事 ${i}`,
+          url: `https://example.com/limit/${i}`,
+          category: 'tech',
+        });
+      }
+
+      const result = await PostService.searchPosts('記事', '', '', { limit: 5 });
+      expect(result).toHaveLength(5);
+    });
+
+    it('limit オプションを与えなければ既定は30件のままであること', async () => {
+      for (let i = 0; i < 35; i++) {
+        await PostService.createPost({
+          title: `article ${i}`,
+          url: `https://example.com/def/${i}`,
+          category: 'tech',
+        });
+      }
+
+      const result = await PostService.searchPosts('article', '', '');
+      expect(result).toHaveLength(30);
+    });
+  });
+
+  describe('createPost (search fields)', () => {
+    it('search_text / search_tokens / search_indexed_at が保存されること', async () => {
+      const { db } = await connectToDatabase();
+      await PostService.createPost({
+        title: '日本語タイトル',
+        url: 'https://example.com/sf',
+        category: 'tech',
+        description: 'せつめい',
+        comment: 'コメント',
+        tag: ['タグ1', 'タグ2'],
+      });
+
+      const doc = await db.collection('posts').findOne({ url: 'https://example.com/sf' });
+      expect(doc).not.toBeNull();
+      expect(typeof doc?.search_text).toBe('string');
+      expect(doc?.search_text).toContain('日本語タイトル');
+      expect(doc?.search_text).toContain('せつめい');
+      expect(doc?.search_text).toContain('コメント');
+      expect(doc?.search_text).toContain('タグ1');
+      expect(typeof doc?.search_tokens).toBe('string');
+      expect(doc?.search_tokens.length).toBeGreaterThan(0);
+      expect(doc?.search_indexed_at).toBeInstanceOf(Date);
+    });
+  });
+
   describe('createPost', () => {
     it('新しい投稿とドメインエントリを作成すること', async () => {
       const { db } = await connectToDatabase();

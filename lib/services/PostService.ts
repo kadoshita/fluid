@@ -1,6 +1,7 @@
 import { type Document, type Filter, ObjectId, type WithId } from 'mongodb';
 import type { DisplayPostData, InsertPostData } from '../../@types/PostData';
 import { connectToDatabase } from '../../db';
+import { composeSearchText, tokenizeForIndex } from '../search';
 
 /**
  * Escape special characters in a string for use in a regular expression
@@ -8,6 +9,61 @@ import { connectToDatabase } from '../../db';
 function escapeRegExp(string: string): string {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
+
+/**
+ * Build the non-keyword portion of a search filter (category + url).
+ */
+function buildBaseFilter(category: string, url: string): Filter<WithId<Document>> {
+  const base: Filter<WithId<Document>> = {};
+  if (category && category !== '') {
+    base.category = category;
+  }
+  if (url && url !== '') {
+    base.url = { $regex: new RegExp(escapeRegExp(url), 'i') };
+  }
+  return base;
+}
+
+/**
+ * Original regex-based keyword search. Kept as a fallback for cases where
+ * the text index returns no hits (queries composed of characters that don't
+ * make it through tokenization, or documents that have not yet been
+ * backfilled with `search_tokens`).
+ */
+async function legacySearchByRegex(
+  keyword: string,
+  base: Filter<WithId<Document>>,
+  limit: number
+): Promise<WithId<Document>[]> {
+  const { db } = await connectToDatabase();
+
+  const conditions: Filter<WithId<Document>>[] = [];
+  if (Object.keys(base).length > 0) {
+    conditions.push(base);
+  }
+
+  const keywordList = keyword.split(/\s+/).filter((word) => word.length > 0);
+  const keywordQueries: Filter<WithId<Document>>[] = keywordList.map((word) => {
+    const escapedWord = escapeRegExp(word);
+    const keywordRegexp = new RegExp(escapedWord, 'i');
+    return {
+      $or: [{ title: { $regex: keywordRegexp } }, { description: { $regex: keywordRegexp } }],
+    };
+  });
+  conditions.push(...keywordQueries);
+
+  const findQuery: Filter<Document> = conditions.length > 0 ? { $and: conditions } : {};
+
+  return db.collection('posts').find(findQuery).sort({ added_at: -1 }).limit(limit).toArray();
+}
+
+const DEFAULT_LIMIT = 30;
+
+export type SearchPostsOptions = {
+  limit?: number;
+  /** When true, skip the text-index path and fall straight back to legacy regex. */
+  disableLexical?: boolean;
+};
 
 export const PostService = {
   /**
@@ -64,61 +120,96 @@ export const PostService = {
   },
 
   /**
-   * Search posts by keyword, category, and URL
+   * Search posts by keyword, category, and URL.
+   *
+   * The keyword path prefers a MongoDB text index over the tokenized
+   * `search_tokens` field, ranked by text score. If the text search returns
+   * nothing (e.g. because the query normalizes to an empty token set or the
+   * document has not been backfilled yet), it transparently falls back to
+   * the previous regex-based behavior so that the caller never sees a
+   * regression relative to the earlier implementation.
    */
-  async searchPosts(keyword: string, category: string, url: string): Promise<DisplayPostData[]> {
+  async searchPosts(
+    keyword: string,
+    category: string,
+    url: string,
+    options: SearchPostsOptions = {}
+  ): Promise<DisplayPostData[]> {
     const { db } = await connectToDatabase();
+    const limit = Math.max(1, Math.min(100, options.limit ?? DEFAULT_LIMIT));
+    const base = buildBaseFilter(category, url);
+    const hasKeyword = !!(keyword && keyword.trim() !== '');
+    const hasBase = Object.keys(base).length > 0;
 
-    const conditions: Filter<WithId<Document>>[] = [];
-
-    // Add keyword conditions (title OR description matches)
-    if (keyword && keyword.trim() !== '') {
-      const keywordList = keyword.split(/\s+/).filter((word) => word.length > 0);
-      const keywordQueries: Filter<WithId<Document>>[] = keywordList.map((word) => {
-        const escapedWord = escapeRegExp(word);
-        const keywordRegexp = new RegExp(escapedWord, 'i');
-        return {
-          $or: [{ title: { $regex: keywordRegexp } }, { description: { $regex: keywordRegexp } }],
-        };
-      });
-      conditions.push(...keywordQueries);
+    // No conditions at all — preserve prior behavior (returns nothing).
+    if (!hasKeyword && !hasBase) {
+      return [];
     }
 
-    // Add category condition
-    if (category && category !== '') {
-      conditions.push({ category: category });
+    // Only filters, no keyword → recency ordering, same as before.
+    if (!hasKeyword) {
+      const posts = await db
+        .collection('posts')
+        .find(base)
+        .sort({ added_at: -1 })
+        .limit(limit)
+        .toArray();
+      return posts.map(toDisplay);
     }
 
-    // Add URL condition
-    if (url && url !== '') {
-      const escapedUrl = escapeRegExp(url);
-      const urlRegexp = new RegExp(escapedUrl, 'i');
-      conditions.push({ url: urlRegexp });
+    const trimmedKeyword = keyword.trim();
+    let candidates: WithId<Document>[] = [];
+
+    if (!options.disableLexical) {
+      const qTokens = tokenizeForIndex(trimmedKeyword);
+      if (qTokens) {
+        const conditions: Filter<WithId<Document>>[] = [{ $text: { $search: qTokens } }];
+        if (hasBase) conditions.unshift(base);
+        const textFilter: Filter<Document> = { $and: conditions };
+
+        candidates = await db
+          .collection('posts')
+          .find(textFilter, {
+            projection: {
+              title: 1,
+              url: 1,
+              category: 1,
+              description: 1,
+              comment: 1,
+              image: 1,
+              tag: 1,
+              added_at: 1,
+              score: { $meta: 'textScore' },
+            },
+          })
+          .sort({ score: { $meta: 'textScore' } })
+          .limit(limit)
+          .toArray();
+      }
     }
 
-    const findQuery: Filter<Document> = conditions.length > 0 ? { $and: conditions } : {};
+    if (candidates.length === 0) {
+      candidates = await legacySearchByRegex(trimmedKeyword, base, limit);
+    }
 
-    const posts = await db
-      .collection('posts')
-      .find(findQuery)
-      .sort({ added_at: -1 })
-      .limit(30)
-      .toArray();
-
-    return posts.map((post) => ({
-      ...post,
-      _id: post._id.toString(),
-      added_at: post.added_at.toISOString(),
-    })) as DisplayPostData[];
+    return candidates.map(toDisplay);
   },
 
   /**
    * Create a new post
    */
-  async createPost(postData: Omit<InsertPostData, 'added_at'>): Promise<void> {
+  async createPost(postData: Omit<InsertPostData, 'added_at' | keyof StoredMarker>): Promise<void> {
     const { db } = await connectToDatabase();
     const added_at = new Date();
-    const insertData: InsertPostData = { ...postData, added_at };
+    const search_text = composeSearchText(postData);
+    const search_tokens = tokenizeForIndex(search_text);
+    const insertData: InsertPostData = {
+      ...postData,
+      added_at,
+      search_text,
+      search_tokens,
+      search_indexed_at: added_at,
+    };
 
     await db.collection('posts').insertOne(insertData);
 
@@ -186,3 +277,18 @@ export const PostService = {
     return await db.collection('posts').countDocuments();
   },
 };
+
+// Marker type kept purely as an alias for the storage-side fields so
+// `createPost` callers don't accidentally supply pre-computed search fields.
+type StoredMarker = Pick<InsertPostData, 'search_text' | 'search_tokens' | 'search_indexed_at'>;
+
+function toDisplay(post: WithId<Document>): DisplayPostData {
+  const { score, ...rest } = post as WithId<Document> & { score?: number };
+  const display: DisplayPostData = {
+    ...(rest as unknown as DisplayPostData),
+    _id: post._id.toString(),
+    added_at: (post.added_at as Date).toISOString(),
+  };
+  if (typeof score === 'number') display.score = score;
+  return display;
+}
