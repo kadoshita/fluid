@@ -21,24 +21,24 @@
   "dependencies": {
     "bootstrap": "^5.3.8",
     "full-icu": "^1.6.0",
-    "mongodb": "^7.4.0",
+    "mongodb": "^7.5.0",
     "next": "^16.3.0",
-    "react": "^19.2.7",
+    "react": "^19.2.8",
     "react-bootstrap": "^2.10.10",
-    "react-dom": "^19.2.7",
+    "react-dom": "^19.2.8",
     "rss": "^1.2.2"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.2",
+    "@biomejs/biome": "^2.5.6",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^25.9.1",
-    "@types/react": "^19.2.17",
+    "@types/react": "^19.2.18",
     "@types/rss": "^0.0.32",
-    "@vitejs/plugin-react": "^6.0.3",
-    "@vitest/ui": "^4.1.9",
-    "jsdom": "^29.1.1",
-    "typescript": "^6.0.3",
+    "@vitejs/plugin-react": "^6.0.5",
+    "@vitest/ui": "^4.1.10",
+    "jsdom": "^30.0.1",
+    "typescript": "^7.0.2",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.0.16"
   }
