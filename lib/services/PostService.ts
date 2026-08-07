@@ -182,7 +182,7 @@ export const PostService = {
               score: { $meta: 'textScore' },
             },
           })
-          .sort({ score: { $meta: 'textScore' } })
+          .sort({ added_at: -1, score: { $meta: 'textScore' } })
           .limit(limit)
           .toArray();
       }
