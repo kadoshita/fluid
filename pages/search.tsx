@@ -29,18 +29,16 @@ const Search = ({ categories }: InferGetServerSidePropsType<typeof getServerSide
   const [url, setUrl] = useState<string>(queryUrl || '');
   const [category, setCategory] = useState<string>(queryCategory || '');
 
-  const fetchSearchResult = useCallback(
-    async (keyword, category, url) => {
-      const query = new URLSearchParams({ keyword, category, url });
-      router.replace(`/search?${query}`);
-      const res = await fetch(`/api/search?${query}`);
-      const data: DisplayPostData[] = await res.json();
-      setPostData(data);
-    },
-    [router]
-  );
+  const fetchSearchResult = useCallback(async (keyword, category, url) => {
+    const query = new URLSearchParams({ keyword, category, url });
+    const res = await fetch(`/api/search?${query}`);
+    const data: DisplayPostData[] = await res.json();
+    setPostData(data);
+  }, []);
 
   const handleSubmit = async () => {
+    const query = new URLSearchParams({ keyword, category, url });
+    router.replace(`/search?${query}`);
     await fetchSearchResult(keyword, category, url);
   };
 
