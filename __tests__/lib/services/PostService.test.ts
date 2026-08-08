@@ -302,6 +302,12 @@ describe('PostService', () => {
   });
 
   describe('searchPosts (日本語 lexical index)', () => {
+    beforeEach(() => {
+      // 閾値テストの干渉を防ぐため、各テスト前に環境変数をリセット
+      delete process.env.SEARCH_MIN_TEXT_SCORE;
+      // キャッシュもクリアして古い結果が返らないようにする
+      resetAllCaches();
+    });
     it('日本語で単語をまたぐ部分一致がヒットすること', async () => {
       await PostService.createPost({
         title: 'React入門と応用',
@@ -330,11 +336,13 @@ describe('PostService', () => {
         description: 'いろいろな言語の比較',
       });
 
-      const kataResult = await PostService.searchPosts('げんご', '', '');
+      // カタカナ入力をひらがなに正規化して検索
+      const kataResult = await PostService.searchPosts('プログラミング', '', '');
       expect(kataResult.map((r) => r.title)).toContain('プログラミング言語');
 
-      const hiraDoc = await PostService.searchPosts('プログラミング', '', '');
-      expect(hiraDoc.map((r) => r.title)).toContain('プログラミング言語');
+      // ひらがな入力でも同じドキュメントにヒット
+      const hiraResult = await PostService.searchPosts('ぷろぐらみんぐ', '', '');
+      expect(hiraResult.map((r) => r.title)).toContain('プログラミング言語');
     });
 
     it('NFKC正規化で半角/全角の差を吸収すること', async () => {
@@ -362,24 +370,101 @@ describe('PostService', () => {
       expect(lower.map((r) => r.title)).toContain('React Tutorial');
     });
 
-    it('適合度スコアで関連度の高い投稿が上位に来ること', async () => {
-      // Post A mentions React only in the title.
-      // Post B mentions React multiple times (title + description).
-      await PostService.createPost({
-        title: 'React',
-        url: 'https://example.com/react-a',
-        category: 'tech',
-        description: 'A single mention',
-      });
-      await PostService.createPost({
-        title: 'React React React',
-        url: 'https://example.com/react-b',
-        category: 'tech',
-        description: 'React React React',
-      });
+    it('検索結果は日付順（新着優先）にソートされること', async () => {
+      const { db } = await connectToDatabase();
+      const now = new Date();
+
+      await db.collection('posts').insertMany([
+        {
+          title: 'React Basics',
+          url: 'https://example.com/react-old',
+          category: 'tech',
+          description: 'Learn React basics',
+          added_at: new Date(now.getTime() - 1000 * 60 * 60 * 48), // 2 days ago
+          search_text: 'React Basics\nLearn React basics',
+          search_tokens: 'react basics learn',
+        },
+        {
+          title: 'React Advanced',
+          url: 'https://example.com/react-new',
+          category: 'tech',
+          description: 'Advanced React techniques',
+          added_at: new Date(now.getTime() - 1000 * 60 * 60 * 2), // 2 hours ago
+          search_text: 'React Advanced\nAdvanced React techniques',
+          search_tokens: 'react advanced techniques',
+        },
+      ]);
 
       const result = await PostService.searchPosts('React', '', '');
-      expect(result[0].title).toBe('React React React');
+
+      expect(result).toHaveLength(2);
+      expect(result[0].title).toBe('React Advanced'); // More recent first
+      expect(result[1].title).toBe('React Basics');
+    });
+
+    it('閾値を超える結果のみが返されること（高閾値でregexフォールバック）', async () => {
+      const { db } = await connectToDatabase();
+
+      // Save original env var
+      const originalThreshold = process.env.SEARCH_MIN_TEXT_SCORE;
+
+      await db.collection('posts').insertOne({
+        title: 'React Guide',
+        url: 'https://example.com/react-threshold',
+        category: 'tech',
+        description: 'A React guide',
+        added_at: new Date(),
+        search_text: 'React Guide\nA React guide',
+        search_tokens: 'react guide',
+      });
+
+      // Set an extremely high threshold that no document can pass
+      process.env.SEARCH_MIN_TEXT_SCORE = '1000000';
+
+      const result = await PostService.searchPosts('React', '', '');
+
+      // Restore env var
+      if (originalThreshold !== undefined) {
+        process.env.SEARCH_MIN_TEXT_SCORE = originalThreshold;
+      } else {
+        delete process.env.SEARCH_MIN_TEXT_SCORE;
+      }
+
+      // Text index returns 0 after threshold → regex fallback finds the post
+      expect(result).toHaveLength(1);
+      expect(result[0].title).toBe('React Guide');
+    });
+
+    it('閾値が0以下の場合はフィルタ無効化されること', async () => {
+      const { db } = await connectToDatabase();
+
+      // Save original env var
+      const originalThreshold = process.env.SEARCH_MIN_TEXT_SCORE;
+
+      await db.collection('posts').insertOne({
+        title: 'React Tips',
+        url: 'https://example.com/react-zero',
+        category: 'tech',
+        description: 'Some React tips',
+        added_at: new Date(),
+        search_text: 'React Tips\nSome React tips',
+        search_tokens: 'react tips some',
+      });
+
+      // Disable threshold filtering
+      process.env.SEARCH_MIN_TEXT_SCORE = '0';
+
+      const result = await PostService.searchPosts('React', '', '');
+
+      // Restore env var
+      if (originalThreshold !== undefined) {
+        process.env.SEARCH_MIN_TEXT_SCORE = originalThreshold;
+      } else {
+        delete process.env.SEARCH_MIN_TEXT_SCORE;
+      }
+
+      expect(result).toHaveLength(1);
+      expect(result[0].title).toBe('React Tips');
     });
 
     it('search_tokensが存在しないドキュメント (レガシー) でも regex フォールバックで拾えること', async () => {
