@@ -36,7 +36,16 @@ export async function connectToDatabase() {
           { search_tokens: 'text' },
           { name: 'posts_search_tokens_text', default_language: 'none' }
         );
+      // Recency index for all "latest posts" queries (getLatest24hPosts, etc.)
+      await db.collection('posts').createIndex({ added_at: -1 });
+      // Compound index for category-filtered recency queries.
+      // Also accelerates distinct('category') operations.
+      await db.collection('posts').createIndex({ category: 1, added_at: -1 });
+      // Compound index for tag-filtered recency queries.
+      await db.collection('posts').createIndex({ tag: 1, added_at: -1 });
       await db.collection('domains').createIndex({ domain: 1 }, { unique: false });
+      // Compound index for domain frequency aggregation pipeline.
+      await db.collection('domains').createIndex({ domain: 1, category: 1 });
 
       return {
         client,

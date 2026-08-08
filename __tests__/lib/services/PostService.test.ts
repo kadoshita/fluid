@@ -1,6 +1,7 @@
 import { ObjectId } from 'mongodb';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { connectToDatabase } from '../../../db';
+import { resetAllCaches } from '../../../lib/cache';
 import { PostService } from '../../../lib/services/PostService';
 
 describe('PostService', () => {
@@ -753,6 +754,105 @@ describe('PostService', () => {
       const result = await PostService.getLatest24hPosts();
 
       expect(result).toHaveLength(1);
+    });
+  });
+
+  describe('キャッシュ動作', () => {
+    beforeEach(() => {
+      // キャッシュをクリアして各テストでクリーンな状態を確保
+      resetAllCaches();
+    });
+
+    it('searchPosts は同じクエリでキャッシュを返すこと', async () => {
+      await PostService.createPost({
+        title: 'Cache Test Post',
+        url: 'https://example.com/cache-test',
+        category: 'tech',
+        description: 'Testing cache behavior',
+      });
+
+      const firstCall = await PostService.searchPosts('Cache Test', '', '');
+      expect(firstCall).toHaveLength(1);
+
+      // 2回目の呼び出しはキャッシュから返される
+      const secondCall = await PostService.searchPosts('Cache Test', '', '');
+      expect(secondCall).toEqual(firstCall);
+    });
+
+    it('getLatest24hPosts はキャッシュを返すこと', async () => {
+      const { db } = await connectToDatabase();
+      const now = new Date();
+
+      await db.collection('posts').insertOne({
+        title: 'Cached Post',
+        url: 'https://example.com/cached',
+        category: 'tech',
+        added_at: new Date(now.getTime() - 1000 * 60 * 60),
+      });
+
+      const firstCall = await PostService.getLatest24hPosts();
+      expect(firstCall).toHaveLength(1);
+
+      const secondCall = await PostService.getLatest24hPosts();
+      expect(secondCall).toEqual(firstCall);
+    });
+
+    it('createPost 後に createPost によってキャッシュが無効化されること', async () => {
+      const { db } = await connectToDatabase();
+
+      // カテゴリ・タグキャッシュにデータを填充
+      await db.collection('posts').insertOne({
+        title: 'Initial Post',
+        url: 'https://example.com/invalidation-test',
+        category: 'tech',
+        tag: ['initial'],
+        added_at: new Date(),
+      });
+
+      // キャッシュを取得
+      const { CategoryService } = await import('../../../lib/services/CategoryService.js');
+      const { TagService } = await import('../../../lib/services/TagService.js');
+
+      const categoriesBefore = await CategoryService.getAllCategories();
+      expect(categoriesBefore).toContain('tech');
+
+      // 投稿を作成 → キャッシュ無効化がトリガーされる
+      await PostService.createPost({
+        title: 'New Post',
+        url: 'https://example.com/new-post',
+        category: 'news',
+        tag: ['new'],
+      });
+
+      // カテゴリ・タグキャッシュは更新され、新しい値が含まれる
+      const categoriesAfter = await CategoryService.getAllCategories();
+      expect(categoriesAfter).toContain('news');
+
+      const tagsAfter = await TagService.getAllTags();
+      expect(tagsAfter).toContain('new');
+    });
+
+    it('異なる検索クエリは異なるキャッシュキーを持つこと', async () => {
+      await PostService.createPost({
+        title: 'React Tutorial',
+        url: 'https://example.com/react-cache',
+        category: 'tech',
+        description: 'Learn React',
+      });
+      await PostService.createPost({
+        title: 'Vue Tutorial',
+        url: 'https://example.com/vue-cache',
+        category: 'tech',
+        description: 'Learn Vue',
+      });
+
+      const reactResults = await PostService.searchPosts('React', '', '');
+      const vueResults = await PostService.searchPosts('Vue', '', '');
+
+      expect(reactResults).toHaveLength(1);
+      expect(reactResults[0].title).toContain('React');
+      expect(vueResults).toHaveLength(1);
+      expect(vueResults[0].title).toContain('Vue');
     });
   });
 });

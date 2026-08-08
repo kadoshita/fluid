@@ -1,5 +1,6 @@
 import { type Db, MongoClient } from 'mongodb';
 import { afterAll, beforeAll, beforeEach } from 'vitest';
+import { resetAllCaches } from './lib/cache';
 import { resetCache } from './db/index';
 
 let client: MongoClient | null = null;
@@ -28,6 +29,9 @@ beforeEach(async () => {
   // Reset the connection cache to avoid stale connections
   resetCache();
 
+  // Reset in-memory caches to avoid cross-test contamination
+  resetAllCaches();
+
   // Get all collections and drop them individually
   const collections = await db.listCollections().toArray();
   for (const collection of collections) {
@@ -47,6 +51,12 @@ beforeEach(async () => {
     { name: 'posts_search_tokens_text', default_language: 'none' }
   );
   await db.collection('domains').createIndex({ domain: 1 }, { unique: false });
+
+  // New indexes for search performance optimization
+  await db.collection('posts').createIndex({ added_at: -1 });
+  await db.collection('posts').createIndex({ category: 1, added_at: -1 });
+  await db.collection('posts').createIndex({ tag: 1, added_at: -1 });
+  await db.collection('domains').createIndex({ domain: 1, category: 1 });
 });
 
 // Close MongoDB connection after all tests

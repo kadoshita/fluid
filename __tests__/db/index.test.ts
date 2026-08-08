@@ -63,6 +63,42 @@ describe('データベース接続', () => {
       expect(textIndex?.default_language).toBe('none');
     });
 
+    it('posts.added_atにインデックスを作成すること', async () => {
+      const result = await connectToDatabase();
+      const indexes = await result.db.collection('posts').indexes();
+
+      const addedAtIndex = indexes.find(
+        (idx) => idx.key.added_at === -1 && Object.keys(idx.key).length === 1
+      );
+      expect(addedAtIndex).toBeDefined();
+    });
+
+    it('posts.category + added_atに複合インデックスを作成すること', async () => {
+      const result = await connectToDatabase();
+      const indexes = await result.db.collection('posts').indexes();
+
+      const compoundIndex = indexes.find(
+        (idx) => idx.key.category === 1 && idx.key.added_at === -1
+      );
+      expect(compoundIndex).toBeDefined();
+    });
+
+    it('posts.tag + added_atに複合インデックスを作成すること', async () => {
+      const result = await connectToDatabase();
+      const indexes = await result.db.collection('posts').indexes();
+
+      const tagIndex = indexes.find((idx) => idx.key.tag === 1 && idx.key.added_at === -1);
+      expect(tagIndex).toBeDefined();
+    });
+
+    it('domains.domain + categoryに複合インデックスを作成すること', async () => {
+      const result = await connectToDatabase();
+      const indexes = await result.db.collection('domains').indexes();
+
+      const compoundIndex = indexes.find((idx) => idx.key.domain === 1 && idx.key.category === 1);
+      expect(compoundIndex).toBeDefined();
+    });
+
     it('domains.domainに非ユニークインデックスを作成すること', async () => {
       const result = await connectToDatabase();
       const indexes = await result.db.collection('domains').indexes();

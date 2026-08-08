@@ -20,6 +20,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       ...(limit !== undefined ? { limit } : {}),
       ...(disableLexical ? { disableLexical: true } : {}),
     });
+    res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=300');
     return res.status(200).json(searchByKeywordResult);
   } catch (e) {
     console.error(e);
