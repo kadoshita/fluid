@@ -87,9 +87,7 @@ describe('データベース接続', () => {
       const result = await connectToDatabase();
       const indexes = await result.db.collection('posts').indexes();
 
-      const tagIndex = indexes.find(
-        (idx) => idx.key.tag === 1 && idx.key.added_at === -1
-      );
+      const tagIndex = indexes.find((idx) => idx.key.tag === 1 && idx.key.added_at === -1);
       expect(tagIndex).toBeDefined();
     });
 
@@ -97,9 +95,7 @@ describe('データベース接続', () => {
       const result = await connectToDatabase();
       const indexes = await result.db.collection('domains').indexes();
 
-      const compoundIndex = indexes.find(
-        (idx) => idx.key.domain === 1 && idx.key.category === 1
-      );
+      const compoundIndex = indexes.find((idx) => idx.key.domain === 1 && idx.key.category === 1);
       expect(compoundIndex).toBeDefined();
     });
 
