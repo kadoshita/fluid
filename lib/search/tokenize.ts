@@ -34,6 +34,15 @@ function isSpecialSymbol(code: number): boolean {
   );
 }
 
+export interface TokenizeOptions {
+  /**
+   * When true, skip 1-gram emission for CJK characters (bi-grams still
+   * produced). Used for query-side tokenization to avoid broad matching on
+   * common single characters like `ん`, `る`, `た`.
+   */
+  omitUnigrams?: boolean;
+}
+
 /**
  * Tokenize normalized text into a whitespace-joined bag of tokens suitable
  * for a MongoDB text index with `default_language: 'none'`.
@@ -42,8 +51,12 @@ function isSpecialSymbol(code: number): boolean {
  * substring-friendly recall (mirrors Elasticsearch's cjk_bigram filter).
  * Latin/digit runs are split at non-alnum boundaries and emitted as word
  * tokens. Short mixed-punctuation tokens (C++, .NET) are also kept verbatim.
+ *
+ * When `omitUnigrams` is set, CJK 1-grams are suppressed (bi-grams remain),
+ * which tightens query precision without sacrificing index coverage.
  */
-export function tokenizeForIndex(input: string): string {
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: 一旦許容する
+export function tokenizeForIndex(input: string, options?: TokenizeOptions): string {
   const normalized = normalizeForSearch(input);
   if (!normalized) return '';
 
@@ -74,7 +87,9 @@ export function tokenizeForIndex(input: string): string {
     if (isCjk(code)) {
       flushLatin();
       flushMixed();
-      tokens.add(ch);
+      if (!options?.omitUnigrams) {
+        tokens.add(ch);
+      }
       const next = chars[i + 1];
       const nextCode = next?.codePointAt(0);
       if (nextCode !== undefined && isCjk(nextCode)) {
