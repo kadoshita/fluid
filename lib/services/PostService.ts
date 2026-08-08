@@ -141,6 +141,7 @@ export const PostService = {
    * the previous regex-based behavior so that the caller never sees a
    * regression relative to the earlier implementation.
    */
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: 一旦許容する
   async searchPosts(
     keyword: string,
     category: string,
@@ -174,19 +175,23 @@ export const PostService = {
     }
 
     const trimmedKeyword = keyword.trim();
-    let candidates: WithId<Document>[] = [];
+    let candidates: Document[] = [];
 
     if (!options.disableLexical) {
-      const qTokens = tokenizeForIndex(trimmedKeyword);
+      const qTokens = tokenizeForIndex(trimmedKeyword, { omitUnigrams: true });
       if (qTokens) {
-        const textFilter: Filter<Document> = hasBase
-          ? { $and: [base, { $text: { $search: qTokens } }] }
-          : { $text: { $search: qTokens } };
+        const minScore = parseFloat(process.env.SEARCH_MIN_TEXT_SCORE ?? '0.5');
 
-        candidates = await db
-          .collection('posts')
-          .find(textFilter, {
-            projection: {
+        const pipeline: Document[] = [
+          // 1. Text search + base filter
+          {
+            $match: hasBase
+              ? { $and: [base, { $text: { $search: qTokens } }] }
+              : { $text: { $search: qTokens } },
+          },
+          // 2. Project fields + extract text score
+          {
+            $project: {
               title: 1,
               url: 1,
               category: 1,
@@ -197,10 +202,16 @@ export const PostService = {
               added_at: 1,
               score: { $meta: 'textScore' },
             },
-          })
-          .sort({ added_at: -1, score: { $meta: 'textScore' } })
-          .limit(limit)
-          .toArray();
+          },
+          // 3. Threshold filter (skip if minScore <= 0 to disable)
+          ...(minScore > 0 ? [{ $match: { score: { $gte: minScore } } }] : []),
+          // 4. Sort by date (descending)
+          { $sort: { added_at: -1 } },
+          // 5. Limit
+          { $limit: limit },
+        ];
+
+        candidates = await db.collection('posts').aggregate(pipeline).toArray();
       }
     }
 
