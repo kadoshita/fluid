@@ -1,6 +1,7 @@
 import { type Document, type Filter, ObjectId, type WithId } from 'mongodb';
 import type { DisplayPostData, InsertPostData } from '../../@types/PostData';
 import { connectToDatabase } from '../../db';
+import { categoriesCache, latestPostsCache, searchCache, tagsCache } from '../cache';
 import { composeSearchText, tokenizeForIndex } from '../search';
 
 /**
@@ -70,6 +71,9 @@ export const PostService = {
    * Get latest 24 hours posts
    */
   async getLatest24hPosts(): Promise<DisplayPostData[]> {
+    const cached = latestPostsCache.get('latest24h');
+    if (cached) return cached as DisplayPostData[];
+
     const { db } = await connectToDatabase();
     const now = new Date();
     const before24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -85,17 +89,23 @@ export const PostService = {
       .sort({ added_at: -1 })
       .toArray();
 
-    return posts.map((post) => ({
+    const result = posts.map((post) => ({
       ...post,
       _id: post._id.toString(),
       added_at: post.added_at.toISOString(),
     })) as DisplayPostData[];
+    latestPostsCache.set('latest24h', result);
+    return result;
   },
 
   /**
    * Get latest 7 days posts by category
    */
   async getLatest7dPostsByCategory(category: string): Promise<DisplayPostData[]> {
+    const cacheKey = `latest7d:${category}`;
+    const cached = latestPostsCache.get(cacheKey);
+    if (cached) return cached as DisplayPostData[];
+
     const { db } = await connectToDatabase();
     const now = new Date();
     const before7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -112,11 +122,13 @@ export const PostService = {
       .sort({ added_at: -1 })
       .toArray();
 
-    return posts.map((post) => ({
+    const result = posts.map((post) => ({
       ...post,
       _id: post._id.toString(),
       added_at: post.added_at.toISOString(),
     })) as DisplayPostData[];
+    latestPostsCache.set(cacheKey, result);
+    return result;
   },
 
   /**
@@ -135,8 +147,12 @@ export const PostService = {
     url: string,
     options: SearchPostsOptions = {}
   ): Promise<DisplayPostData[]> {
-    const { db } = await connectToDatabase();
     const limit = Math.max(1, Math.min(100, options.limit ?? DEFAULT_LIMIT));
+    const cacheKey = `search:${keyword}:${category}:${url}:${limit}`;
+    const cached = searchCache.get(cacheKey);
+    if (cached) return cached as DisplayPostData[];
+
+    const { db } = await connectToDatabase();
     const base = buildBaseFilter(category, url);
     const hasKeyword = !!(keyword && keyword.trim() !== '');
     const hasBase = Object.keys(base).length > 0;
@@ -163,9 +179,9 @@ export const PostService = {
     if (!options.disableLexical) {
       const qTokens = tokenizeForIndex(trimmedKeyword);
       if (qTokens) {
-        const conditions: Filter<WithId<Document>>[] = [{ $text: { $search: qTokens } }];
-        if (hasBase) conditions.unshift(base);
-        const textFilter: Filter<Document> = { $and: conditions };
+        const textFilter: Filter<Document> = hasBase
+          ? { $and: [base, { $text: { $search: qTokens } }] }
+          : { $text: { $search: qTokens } };
 
         candidates = await db
           .collection('posts')
@@ -192,7 +208,9 @@ export const PostService = {
       candidates = await legacySearchByRegex(trimmedKeyword, base, limit);
     }
 
-    return candidates.map(toDisplay);
+    const result = candidates.map(toDisplay);
+    searchCache.set(cacheKey, result);
+    return result;
   },
 
   /**
@@ -223,6 +241,10 @@ export const PostService = {
       category,
       added_at,
     });
+
+    // Invalidate reference caches on write
+    categoriesCache.invalidate('categories');
+    tagsCache.invalidate('tags');
   },
 
   /**
@@ -246,6 +268,10 @@ export const PostService = {
    * Get latest 24 hours posts by category
    */
   async getLatest24hPostsByCategory(category: string): Promise<DisplayPostData[]> {
+    const cacheKey = `latest24hCat:${category}`;
+    const cached = latestPostsCache.get(cacheKey);
+    if (cached) return cached as DisplayPostData[];
+
     const { db } = await connectToDatabase();
     const now = new Date();
     const before24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -262,11 +288,13 @@ export const PostService = {
       .sort({ added_at: -1 })
       .toArray();
 
-    return posts.map((post) => ({
+    const result = posts.map((post) => ({
       ...post,
       _id: post._id.toString(),
       added_at: post.added_at.toISOString(),
     })) as DisplayPostData[];
+    latestPostsCache.set(cacheKey, result);
+    return result;
   },
 
   /**

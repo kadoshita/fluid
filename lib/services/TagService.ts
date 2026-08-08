@@ -1,13 +1,21 @@
 import type { DisplayPostData } from '../../@types/PostData';
 import { connectToDatabase } from '../../db';
+import { tagsCache } from '../cache';
 
 export const TagService = {
   /**
    * Get all distinct tags from posts
    */
   async getAllTags(): Promise<string[]> {
+    const cached = tagsCache.get('tags');
+    if (cached) return cached;
+
     const { db } = await connectToDatabase();
-    return await db.collection('posts').distinct('tag');
+    const result = (await db.collection('posts').distinct('tag')).filter(
+      (t): t is string => typeof t === 'string'
+    );
+    tagsCache.set('tags', result);
+    return result;
   },
 
   /**
