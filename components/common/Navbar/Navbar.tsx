@@ -13,6 +13,10 @@ const MyNavbar = () => {
     e.preventDefault();
     router.push('/search');
   };
+  const handleGoToAboutClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    router.push('/about');
+  };
   return (
     <Navbar bg='dark' expand='lg' variant='dark' className={style.navbar}>
       <Navbar.Brand href='/'>fluid</Navbar.Brand>
@@ -24,6 +28,9 @@ const MyNavbar = () => {
           </Nav.Link>
           <Nav.Link href='#' onClick={handleGoToSearchClick}>
             Search
+          </Nav.Link>
+          <Nav.Link href='#' onClick={handleGoToAboutClick}>
+            About
           </Nav.Link>
           <Nav.Link href='/api/feed' target='_blank'>
             RSS
