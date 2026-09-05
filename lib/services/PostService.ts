@@ -81,11 +81,7 @@ export const PostService = {
       .sort({ added_at: -1 })
       .toArray();
 
-    const result = posts.map((post) => ({
-      ...post,
-      _id: post._id.toString(),
-      added_at: post.added_at.toISOString(),
-    })) as DisplayPostData[];
+    const result = posts.map(toDisplay);
     latestPostsCache.set('latest24h', result);
     return result;
   },
@@ -114,11 +110,7 @@ export const PostService = {
       .sort({ added_at: -1 })
       .toArray();
 
-    const result = posts.map((post) => ({
-      ...post,
-      _id: post._id.toString(),
-      added_at: post.added_at.toISOString(),
-    })) as DisplayPostData[];
+    const result = posts.map(toDisplay);
     latestPostsCache.set(cacheKey, result);
     return result;
   },
@@ -217,11 +209,7 @@ export const PostService = {
 
     if (!result) return null;
 
-    return {
-      ...result,
-      _id: result._id.toString(),
-      added_at: result.added_at.toISOString(),
-    } as DisplayPostData;
+    return toDisplay(result);
   },
 
   /**
@@ -248,11 +236,7 @@ export const PostService = {
       .sort({ added_at: -1 })
       .toArray();
 
-    const result = posts.map((post) => ({
-      ...post,
-      _id: post._id.toString(),
-      added_at: post.added_at.toISOString(),
-    })) as DisplayPostData[];
+    const result = posts.map(toDisplay);
     latestPostsCache.set(cacheKey, result);
     return result;
   },
@@ -270,10 +254,14 @@ export const PostService = {
 // `createPost` callers don't accidentally supply pre-computed search fields.
 type StoredMarker = Pick<InsertPostData, 'search_text' | 'search_tokens' | 'search_indexed_at'>;
 
-function toDisplay(post: WithId<Document>): DisplayPostData {
+export function toDisplay(post: WithId<Document>): DisplayPostData {
   return {
     ...(post as unknown as DisplayPostData),
     _id: post._id.toString(),
     added_at: (post.added_at as Date).toISOString(),
+    // Keep the payload JSON-serializable (SSR props require plain JSON).
+    ...(post.search_indexed_at instanceof Date
+      ? { search_indexed_at: post.search_indexed_at.toISOString() }
+      : {}),
   };
 }

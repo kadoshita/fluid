@@ -1,6 +1,7 @@
 import type { DisplayPostData } from '../../@types/PostData';
 import { connectToDatabase } from '../../db';
 import { tagsCache } from '../cache';
+import { toDisplay } from './PostService';
 
 export const TagService = {
   /**
@@ -40,10 +41,6 @@ export const TagService = {
       .sort({ added_at: -1 })
       .toArray();
 
-    return posts.map((post) => ({
-      ...post,
-      _id: post._id.toString(),
-      added_at: post.added_at.toISOString(),
-    })) as DisplayPostData[];
+    return posts.map(toDisplay);
   },
 };
