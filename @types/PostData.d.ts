@@ -25,6 +25,4 @@ export interface InsertPostData extends PostData, StoredPostSearchFields {
 export interface DisplayPostData extends PostData {
   _id: string;
   added_at: string;
-  /** MongoDB text-index score when the result came from the lexical path. */
-  score?: number;
 }

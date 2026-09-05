@@ -186,7 +186,7 @@ describe('PostService', () => {
       expect(result[0].title).toBe('React Tutorial');
     });
 
-    it('複数のキーワードで投稿を検索できること', async () => {
+    it('スペース区切りの各単語をOR条件として検索すること', async () => {
       const { db } = await connectToDatabase();
 
       const posts = [
@@ -215,10 +215,12 @@ describe('PostService', () => {
 
       await db.collection('posts').insertMany(posts);
 
+      // 'React' OR 'TypeScript' → 両方の単語を含む1件 + 'React'のみを含む1件
       const result = await PostService.searchPosts('React TypeScript', '', '');
 
-      expect(result).toHaveLength(1);
-      expect(result[0].title).toBe('React TypeScript Tutorial');
+      expect(result).toHaveLength(2);
+      const titles = result.map((r) => r.title).sort();
+      expect(titles).toEqual(['React Tutorial', 'React TypeScript Tutorial']);
     });
 
     it('キーワードとカテゴリで投稿を検索できること', async () => {
@@ -301,10 +303,98 @@ describe('PostService', () => {
     });
   });
 
-  describe('searchPosts (日本語 lexical index)', () => {
+  describe('searchPosts (AND/OR演算子)', () => {
     beforeEach(() => {
-      // 閾値テストの干渉を防ぐため、各テスト前に環境変数をリセット
-      delete process.env.SEARCH_MIN_TEXT_SCORE;
+      resetAllCaches();
+    });
+
+    async function seedFruitPosts() {
+      const { db } = await connectToDatabase();
+      await db.collection('posts').insertMany([
+        {
+          title: 'Apple pie recipe',
+          url: 'https://example.com/apple-pie',
+          category: 'tech',
+          description: 'Baking apple pie',
+          added_at: new Date(),
+        },
+        {
+          title: 'Apple banana smoothie',
+          url: 'https://example.com/apple-banana',
+          category: 'tech',
+          description: 'Apple and banana smoothie',
+          added_at: new Date(),
+        },
+        {
+          title: 'Banana bread',
+          url: 'https://example.com/banana-bread',
+          category: 'tech',
+          description: 'Fresh banana bread',
+          added_at: new Date(),
+        },
+        {
+          title: 'Cherry tomato salsa',
+          url: 'https://example.com/cherry-tomato',
+          category: 'tech',
+          description: 'Cherry tomato salsa',
+          added_at: new Date(),
+        },
+      ]);
+    }
+
+    it('ANDの前後の単語が両方ヒットする投稿のみを返すこと', async () => {
+      await seedFruitPosts();
+
+      const result = await PostService.searchPosts('apple AND banana', '', '');
+
+      expect(result.map((r) => r.title)).toEqual(['Apple banana smoothie']);
+    });
+
+    it('A B AND C を A OR (B AND C) と解釈すること', async () => {
+      await seedFruitPosts();
+
+      // cherry OR (apple AND banana)
+      const result = await PostService.searchPosts('cherry apple AND banana', '', '');
+
+      const titles = result.map((r) => r.title).sort();
+      expect(titles).toEqual(['Apple banana smoothie', 'Cherry tomato salsa']);
+    });
+
+    it('小文字のandは演算子ではなく単語として検索すること', async () => {
+      await seedFruitPosts();
+
+      // apple OR and OR banana → AND条件にならないため3件ヒット
+      const result = await PostService.searchPosts('apple and banana', '', '');
+
+      const titles = result.map((r) => r.title).sort();
+      expect(titles).toEqual(['Apple banana smoothie', 'Apple pie recipe', 'Banana bread']);
+    });
+
+    it('AND条件の検索も大文字小文字を同一視すること', async () => {
+      await seedFruitPosts();
+
+      const result = await PostService.searchPosts('APPLE AND BANANA', '', '');
+
+      expect(result.map((r) => r.title)).toEqual(['Apple banana smoothie']);
+    });
+
+    it('AND条件とカテゴリ・URL条件をANDで組み合わせること', async () => {
+      await seedFruitPosts();
+      const { db } = await connectToDatabase();
+      await db
+        .collection('posts')
+        .updateOne({ url: 'https://example.com/apple-banana' }, { $set: { category: 'food' } });
+
+      const techOnly = await PostService.searchPosts('apple AND banana', 'tech', '');
+      expect(techOnly).toHaveLength(0);
+
+      const foodOnly = await PostService.searchPosts('apple AND banana', 'food', '');
+      expect(foodOnly.map((r) => r.title)).toEqual(['Apple banana smoothie']);
+    });
+  });
+
+  describe('searchPosts (日本語・大文字小文字)', () => {
+    beforeEach(() => {
       // キャッシュもクリアして古い結果が返らないようにする
       resetAllCaches();
     });
@@ -326,34 +416,6 @@ describe('PostService', () => {
       // Both posts contain 入門, both should match
       const titles = result.map((r) => r.title).sort();
       expect(titles).toEqual(['React入門と応用', 'Vue入門']);
-    });
-
-    it('カタカナ・ひらがな相互で検索できること', async () => {
-      await PostService.createPost({
-        title: 'プログラミング言語',
-        url: 'https://example.com/lang',
-        category: 'tech',
-        description: 'いろいろな言語の比較',
-      });
-
-      // カタカナ入力をひらがなに正規化して検索
-      const kataResult = await PostService.searchPosts('プログラミング', '', '');
-      expect(kataResult.map((r) => r.title)).toContain('プログラミング言語');
-
-      // ひらがな入力でも同じドキュメントにヒット
-      const hiraResult = await PostService.searchPosts('ぷろぐらみんぐ', '', '');
-      expect(hiraResult.map((r) => r.title)).toContain('プログラミング言語');
-    });
-
-    it('NFKC正規化で半角/全角の差を吸収すること', async () => {
-      await PostService.createPost({
-        title: 'ＴｙｐｅＳｃｒｉｐｔ入門',
-        url: 'https://example.com/ts',
-        category: 'tech',
-      });
-
-      const result = await PostService.searchPosts('TypeScript', '', '');
-      expect(result.map((r) => r.title)).toContain('ＴｙｐｅＳｃｒｉｐｔ入門');
     });
 
     it('大文字/小文字を同一視すること', async () => {
@@ -402,72 +464,7 @@ describe('PostService', () => {
       expect(result[1].title).toBe('React Basics');
     });
 
-    it('閾値を超える結果のみが返されること（高閾値でregexフォールバック）', async () => {
-      const { db } = await connectToDatabase();
-
-      // Save original env var
-      const originalThreshold = process.env.SEARCH_MIN_TEXT_SCORE;
-
-      await db.collection('posts').insertOne({
-        title: 'React Guide',
-        url: 'https://example.com/react-threshold',
-        category: 'tech',
-        description: 'A React guide',
-        added_at: new Date(),
-        search_text: 'React Guide\nA React guide',
-        search_tokens: 'react guide',
-      });
-
-      // Set an extremely high threshold that no document can pass
-      process.env.SEARCH_MIN_TEXT_SCORE = '1000000';
-
-      const result = await PostService.searchPosts('React', '', '');
-
-      // Restore env var
-      if (originalThreshold !== undefined) {
-        process.env.SEARCH_MIN_TEXT_SCORE = originalThreshold;
-      } else {
-        delete process.env.SEARCH_MIN_TEXT_SCORE;
-      }
-
-      // Text index returns 0 after threshold → regex fallback finds the post
-      expect(result).toHaveLength(1);
-      expect(result[0].title).toBe('React Guide');
-    });
-
-    it('閾値が0以下の場合はフィルタ無効化されること', async () => {
-      const { db } = await connectToDatabase();
-
-      // Save original env var
-      const originalThreshold = process.env.SEARCH_MIN_TEXT_SCORE;
-
-      await db.collection('posts').insertOne({
-        title: 'React Tips',
-        url: 'https://example.com/react-zero',
-        category: 'tech',
-        description: 'Some React tips',
-        added_at: new Date(),
-        search_text: 'React Tips\nSome React tips',
-        search_tokens: 'react tips some',
-      });
-
-      // Disable threshold filtering
-      process.env.SEARCH_MIN_TEXT_SCORE = '0';
-
-      const result = await PostService.searchPosts('React', '', '');
-
-      // Restore env var
-      if (originalThreshold !== undefined) {
-        process.env.SEARCH_MIN_TEXT_SCORE = originalThreshold;
-      } else {
-        delete process.env.SEARCH_MIN_TEXT_SCORE;
-      }
-
-      expect(result).toHaveLength(1);
-      expect(result[0].title).toBe('React Tips');
-    });
-
-    it('search_tokensが存在しないドキュメント (レガシー) でも regex フォールバックで拾えること', async () => {
+    it('search_tokensが存在しないドキュメント (レガシー) でも検索できること', async () => {
       const { db } = await connectToDatabase();
       await db.collection('posts').insertOne({
         title: 'Legacy Post about Go',
@@ -479,18 +476,6 @@ describe('PostService', () => {
 
       const result = await PostService.searchPosts('Legacy', '', '');
       expect(result.map((r) => r.title)).toContain('Legacy Post about Go');
-    });
-
-    it('nolexical (disableLexical) 指定で常に regex パスを使うこと', async () => {
-      await PostService.createPost({
-        title: 'React入門',
-        url: 'https://example.com/reg',
-        category: 'tech',
-      });
-
-      // With lexical disabled, the legacy AND-regex should still find it.
-      const result = await PostService.searchPosts('入門', '', '', { disableLexical: true });
-      expect(result.map((r) => r.title)).toContain('React入門');
     });
 
     it('limit オプションが尊重されること', async () => {

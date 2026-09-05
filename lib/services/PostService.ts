@@ -2,7 +2,7 @@ import { type Document, type Filter, ObjectId, type WithId } from 'mongodb';
 import type { DisplayPostData, InsertPostData } from '../../@types/PostData';
 import { connectToDatabase } from '../../db';
 import { categoriesCache, latestPostsCache, searchCache, tagsCache } from '../cache';
-import { composeSearchText, tokenizeForIndex } from '../search';
+import { composeSearchText, type KeywordClause, parseKeyword, tokenizeForIndex } from '../search';
 
 /**
  * Escape special characters in a string for use in a regular expression
@@ -26,44 +26,36 @@ function buildBaseFilter(category: string, url: string): Filter<WithId<Document>
 }
 
 /**
- * Original regex-based keyword search. Kept as a fallback for cases where
- * the text index returns no hits (queries composed of characters that don't
- * make it through tokenization, or documents that have not yet been
- * backfilled with `search_tokens`).
+ * Case-insensitive "word appears in title or description" condition.
  */
-async function legacySearchByRegex(
-  keyword: string,
-  base: Filter<WithId<Document>>,
-  limit: number
-): Promise<WithId<Document>[]> {
-  const { db } = await connectToDatabase();
+function wordCondition(word: string): Filter<WithId<Document>> {
+  const regex = new RegExp(escapeRegExp(word), 'i');
+  return {
+    $or: [{ title: { $regex: regex } }, { description: { $regex: regex } }],
+  };
+}
 
-  const conditions: Filter<WithId<Document>>[] = [];
-  if (Object.keys(base).length > 0) {
-    conditions.push(base);
+/**
+ * Compile parsed keyword clauses into a single filter.
+ * Clauses are combined with OR; each AND clause requires both words.
+ * e.g. `A B AND C` → `A OR (B AND C)`.
+ */
+function buildKeywordFilter(clauses: KeywordClause[]): Filter<WithId<Document>> {
+  const alternatives = clauses.map((clause) =>
+    clause.kind === 'and'
+      ? { $and: clause.words.map((word) => wordCondition(word)) }
+      : wordCondition(clause.word)
+  );
+  if (alternatives.length === 1) {
+    return alternatives[0];
   }
-
-  const keywordList = keyword.split(/\s+/).filter((word) => word.length > 0);
-  const keywordQueries: Filter<WithId<Document>>[] = keywordList.map((word) => {
-    const escapedWord = escapeRegExp(word);
-    const keywordRegexp = new RegExp(escapedWord, 'i');
-    return {
-      $or: [{ title: { $regex: keywordRegexp } }, { description: { $regex: keywordRegexp } }],
-    };
-  });
-  conditions.push(...keywordQueries);
-
-  const findQuery: Filter<Document> = conditions.length > 0 ? { $and: conditions } : {};
-
-  return db.collection('posts').find(findQuery).sort({ added_at: -1 }).limit(limit).toArray();
+  return { $or: alternatives };
 }
 
 const DEFAULT_LIMIT = 30;
 
 export type SearchPostsOptions = {
   limit?: number;
-  /** When true, skip the text-index path and fall straight back to legacy regex. */
-  disableLexical?: boolean;
 };
 
 export const PostService = {
@@ -134,14 +126,13 @@ export const PostService = {
   /**
    * Search posts by keyword, category, and URL.
    *
-   * The keyword path prefers a MongoDB text index over the tokenized
-   * `search_tokens` field, ranked by text score. If the text search returns
-   * nothing (e.g. because the query normalizes to an empty token set or the
-   * document has not been backfilled yet), it transparently falls back to
-   * the previous regex-based behavior so that the caller never sees a
-   * regression relative to the earlier implementation.
+   * Keyword search is a single naive MongoDB query: whitespace-separated
+   * words are combined with OR, and the uppercase `AND` operator joins the
+   * words immediately before and after it into an AND clause
+   * (`A B AND C` → `A OR (B AND C)`; lowercase `and` is an ordinary word).
+   * Matching is a case-insensitive substring match on `title` and
+   * `description`.
    */
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: 一旦許容する
   async searchPosts(
     keyword: string,
     category: string,
@@ -155,71 +146,29 @@ export const PostService = {
 
     const { db } = await connectToDatabase();
     const base = buildBaseFilter(category, url);
-    const hasKeyword = !!(keyword && keyword.trim() !== '');
+    const clauses = parseKeyword(keyword);
     const hasBase = Object.keys(base).length > 0;
 
     // No conditions at all — preserve prior behavior (returns nothing).
-    if (!hasKeyword && !hasBase) {
+    if (clauses.length === 0 && !hasBase) {
       return [];
     }
 
-    // Only filters, no keyword → recency ordering, same as before.
-    if (!hasKeyword) {
-      const posts = await db
-        .collection('posts')
-        .find(base)
-        .sort({ added_at: -1 })
-        .limit(limit)
-        .toArray();
-      return posts.map(toDisplay);
-    }
+    const conditions: Filter<WithId<Document>>[] = [];
+    if (hasBase) conditions.push(base);
+    if (clauses.length > 0) conditions.push(buildKeywordFilter(clauses));
 
-    const trimmedKeyword = keyword.trim();
-    let candidates: Document[] = [];
+    const findQuery: Filter<WithId<Document>> =
+      conditions.length === 1 ? conditions[0] : { $and: conditions };
 
-    if (!options.disableLexical) {
-      const qTokens = tokenizeForIndex(trimmedKeyword, { omitUnigrams: true });
-      if (qTokens) {
-        const minScore = parseFloat(process.env.SEARCH_MIN_TEXT_SCORE ?? '0.5');
+    const posts = await db
+      .collection('posts')
+      .find(findQuery)
+      .sort({ added_at: -1 })
+      .limit(limit)
+      .toArray();
 
-        const pipeline: Document[] = [
-          // 1. Text search + base filter
-          {
-            $match: hasBase
-              ? { $and: [base, { $text: { $search: qTokens } }] }
-              : { $text: { $search: qTokens } },
-          },
-          // 2. Project fields + extract text score
-          {
-            $project: {
-              title: 1,
-              url: 1,
-              category: 1,
-              description: 1,
-              comment: 1,
-              image: 1,
-              tag: 1,
-              added_at: 1,
-              score: { $meta: 'textScore' },
-            },
-          },
-          // 3. Threshold filter (skip if minScore <= 0 to disable)
-          ...(minScore > 0 ? [{ $match: { score: { $gte: minScore } } }] : []),
-          // 4. Sort by date (descending)
-          { $sort: { added_at: -1 } },
-          // 5. Limit
-          { $limit: limit },
-        ];
-
-        candidates = await db.collection('posts').aggregate(pipeline).toArray();
-      }
-    }
-
-    if (candidates.length === 0) {
-      candidates = await legacySearchByRegex(trimmedKeyword, base, limit);
-    }
-
-    const result = candidates.map(toDisplay);
+    const result = posts.map(toDisplay);
     searchCache.set(cacheKey, result);
     return result;
   },
@@ -322,12 +271,9 @@ export const PostService = {
 type StoredMarker = Pick<InsertPostData, 'search_text' | 'search_tokens' | 'search_indexed_at'>;
 
 function toDisplay(post: WithId<Document>): DisplayPostData {
-  const { score, ...rest } = post as WithId<Document> & { score?: number };
-  const display: DisplayPostData = {
-    ...(rest as unknown as DisplayPostData),
+  return {
+    ...(post as unknown as DisplayPostData),
     _id: post._id.toString(),
     added_at: (post.added_at as Date).toISOString(),
   };
-  if (typeof score === 'number') display.score = score;
-  return display;
 }

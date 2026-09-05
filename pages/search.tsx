@@ -74,6 +74,10 @@ const Search = ({ categories }: InferGetServerSidePropsType<typeof getServerSide
               placeholder='Keyword'
               onChange={({ target }) => setKeyword(target.value)}
             />
+            <Form.Text muted>
+              Separate multiple keywords with spaces (OR). Use uppercase AND to require both words,
+              e.g. apple AND banana.
+            </Form.Text>
             <Form.Label>URL</Form.Label>
             <Form.Control
               type='text'

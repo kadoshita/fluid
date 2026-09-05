@@ -14,11 +14,9 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     const category: string = (req.query.category as string) ?? '';
     const url: string = (req.query.url as string) ?? '';
     const limit = parseLimit(req.query.limit);
-    const disableLexical = req.query.nolexical === '1';
 
     const searchByKeywordResult = await PostService.searchPosts(keyword, category, url, {
       ...(limit !== undefined ? { limit } : {}),
-      ...(disableLexical ? { disableLexical: true } : {}),
     });
     res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=300');
     return res.status(200).json(searchByKeywordResult);
