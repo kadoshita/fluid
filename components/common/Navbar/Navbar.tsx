@@ -38,9 +38,6 @@ const MyNavbar = () => {
           <Nav.Link href='https://github.com/kadoshita/fluid' target='_blank'>
             GitHub
           </Nav.Link>
-          <Nav.Link href='https://twitter.com/fluid_share' target='_blank'>
-            Twitter
-          </Nav.Link>
           <Nav.Link href='https://mstdn.sublimer.me/@fluid' target='_blank'>
             Mastodon
           </Nav.Link>
