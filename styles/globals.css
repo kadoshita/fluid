@@ -16,7 +16,7 @@ body {
     sans-serif;
 }
 
-a {
+body a {
   color: inherit;
   text-decoration: none;
 }
