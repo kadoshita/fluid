@@ -1,5 +1,5 @@
-# ベースイメージとしてNode.js 24（Debian bullseye-slim版）を使用
-FROM node:24.12.0-bullseye-slim AS base
+# ベースイメージとしてNode.js 24（LTS / Debian trixie-slim版）を使用
+FROM node:24.22.1-trixie-slim AS base
 
 # 依存関係のインストールステージ
 FROM base AS deps
@@ -28,8 +28,8 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
-# 本番実行ステージ - Distrolessイメージを使用
-FROM gcr.io/distroless/nodejs24-debian12:nonroot
+# 本番実行ステージ - Distrolessイメージ（Debian 13 / trixie）を使用
+FROM gcr.io/distroless/nodejs24-debian13:nonroot
 
 WORKDIR /app
 
